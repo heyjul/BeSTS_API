@@ -27,15 +27,11 @@ async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
     }
 }
 
-async fn load_config(rocket: Rocket<Build>) -> Rocket<Build> {
-    dotenvy::dotenv().ok();
-    rocket
-}
-
 #[launch]
 fn rocket() -> _ {
+    dotenvy::dotenv().ok();
+
     rocket::build()
-        .attach(AdHoc::on_ignite("Load config", load_config))
         .attach(SoccerDb::init())
         .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
         .mount(
@@ -43,7 +39,17 @@ fn rocket() -> _ {
             routes![
                 auth_endpoint::register,
                 auth_endpoint::login,
-                auth_endpoint::refresh_token
+                auth_endpoint::refresh_token,
+            ],
+        )
+        .mount(
+            "/rooms",
+            routes![
+                room_endpoint::get,
+                room_endpoint::create,
+                room_endpoint::get_by_id,
+                room_endpoint::join,
+                room_endpoint::delete,
             ],
         )
 }

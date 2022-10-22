@@ -17,27 +17,27 @@ impl RepositoryFactory for AuthRepository {
 }
 
 impl AuthRepository {
-    pub async fn register(&self, req: RegisterRequest) -> Result<bool, Box<dyn std::error::Error>> {
+    pub async fn register(&self, req: RegisterRequest) -> Result<(), Box<dyn std::error::Error>> {
         let record = sqlx::query!(
             "  
-    SELECT 
-        CASE WHEN EXISTS (
             SELECT 
-                * 
-            FROM 
-                users 
-            WHERE 
-                email = ?
-        ) THEN 1 ELSE 0 end email_exists, 
-        CASE WHEN EXISTS (
-            SELECT 
-                * 
-            FROM 
-                users 
-            WHERE 
-                username = ?
-        ) THEN 1 ELSE 0 end username_exists
-                ",
+                CASE WHEN EXISTS (
+                    SELECT 
+                        * 
+                    FROM 
+                        users 
+                    WHERE 
+                        email = ?
+                ) THEN 1 ELSE 0 end email_exists, 
+                CASE WHEN EXISTS (
+                    SELECT 
+                        * 
+                    FROM 
+                        users 
+                    WHERE 
+                        username = ?
+                ) THEN 1 ELSE 0 end username_exists
+            ",
             req.email,
             req.username
         )
@@ -45,16 +45,16 @@ impl AuthRepository {
         .await?;
 
         if record.email_exists == 1 {
-            return Err(Box::new(AuthError::EmailTaken(req.email)));
+            return Err(Box::new(AuthError::EmailTaken(())));
         }
 
         if record.username_exists == 1 {
-            return Err(Box::new(AuthError::UsernameTaken(req.username)));
+            return Err(Box::new(AuthError::UsernameTaken(())));
         }
 
         let hashed_password = password::hash_password(&req.password)?;
 
-        let x = sqlx::query!(
+        sqlx::query!(
             "
             INSERT INTO users 
                 (username, email, password)
@@ -68,7 +68,7 @@ impl AuthRepository {
         .execute(&self.db_pool)
         .await?;
 
-        Ok(x.rows_affected() == 1)
+        Ok(())
     }
 
     pub async fn get_user_by_email(
@@ -78,15 +78,15 @@ impl AuthRepository {
         let user = sqlx::query_as!(
             User,
             "
-        SELECT
-            id,
-            username,
-            email,
-            password
-        FROM
-            users
-        WHERE
-            email = ?
+            SELECT
+                id,
+                username,
+                email,
+                password
+            FROM
+                users
+            WHERE
+                email = ?
             ",
             email
         )

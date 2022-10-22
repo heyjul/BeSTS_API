@@ -2,18 +2,18 @@ use thiserror::Error;
 
 #[derive(Error, Debug, Responder)]
 pub enum AuthError {
-    #[error("The email {0} is already taken.")]
+    #[error("Email is already taken.")]
     #[response(status = 400)]
-    EmailTaken(String),
-    #[error("The username {0} is already taken.")]
+    EmailTaken(()),
+    #[error("Username is already taken.")]
     #[response(status = 400)]
-    UsernameTaken(String),
-    #[error("Something whent wrong.")]
-    #[response(status = 500)]
-    InternalServerError(String),
+    UsernameTaken(()),
     #[error("Invalid credentials.")]
     #[response(status = 400)]
-    InvalidCredentials(String),
+    InvalidCredentials(()),
+    #[error("Something whent wrong.")]
+    #[response(status = 500)]
+    InternalServerError(()),
 }
 
 impl From<Box<dyn std::error::Error>> for AuthError {
@@ -22,6 +22,6 @@ impl From<Box<dyn std::error::Error>> for AuthError {
             return *err;
         }
 
-        AuthError::InternalServerError("Something whent wrong".to_owned())
+        AuthError::InternalServerError(())
     }
 }
