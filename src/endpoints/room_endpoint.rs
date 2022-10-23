@@ -1,9 +1,4 @@
-use once_cell::sync::Lazy;
 use rocket::serde::json::Json;
-
-static HASHER: Lazy<hashids::HashIds> = Lazy::new(|| {
-    hashids::HashIds::new_with_salt("Sel de Guérande".to_owned()).expect("Could not create hashids")
-});
 
 use crate::{
     models::{
@@ -12,19 +7,8 @@ use crate::{
         room_error::RoomError,
     },
     repositories::{factory::Factory, room_repository::RoomRepository},
+    utils::hasher::{decode_id, encode_id},
 };
-
-pub fn encode_id(id: i64) -> String {
-    HASHER.encode(&vec![id])
-}
-
-pub fn decode_id(id: String) -> Result<i64, RoomError> {
-    HASHER
-        .decode(id)
-        .first()
-        .map(|x| *x)
-        .ok_or(RoomError::InvalidArgumentError(()))
-}
 
 #[get("/")]
 pub async fn get(factory: &Factory, user: &User) -> Result<Json<Vec<RoomDto>>, RoomError> {
@@ -60,7 +44,7 @@ pub async fn get_by_id(
                 name: r.name,
             };
 
-            if r.owner == user.id {
+            if r.owner_id == user.id {
                 room.id = Some(encode_id(r.id))
             }
 

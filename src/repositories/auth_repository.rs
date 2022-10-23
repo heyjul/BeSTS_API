@@ -25,7 +25,7 @@ impl AuthRepository {
                     SELECT 
                         * 
                     FROM 
-                        users 
+                        user 
                     WHERE 
                         email = ?
                 ) THEN 1 ELSE 0 end email_exists, 
@@ -33,7 +33,7 @@ impl AuthRepository {
                     SELECT 
                         * 
                     FROM 
-                        users 
+                        user 
                     WHERE 
                         username = ?
                 ) THEN 1 ELSE 0 end username_exists
@@ -56,7 +56,7 @@ impl AuthRepository {
 
         sqlx::query!(
             "
-            INSERT INTO users 
+            INSERT INTO user 
                 (username, email, password)
             VALUES
                 (?, ?, ?)
@@ -84,7 +84,7 @@ impl AuthRepository {
                 email,
                 password
             FROM
-                users
+                user
             WHERE
                 email = ?
             ",

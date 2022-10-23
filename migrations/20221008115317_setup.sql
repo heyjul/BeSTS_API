@@ -1,5 +1,5 @@
 -- Add migration script here
-CREATE TABLE users (
+CREATE TABLE user (
 	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    	email TEXT NOT NULL,
 	password TEXT NOT NULL,
@@ -7,42 +7,54 @@ CREATE TABLE users (
 	UNIQUE (email) 
 );
 
-CREATE TABLE rooms (
+CREATE TABLE room (
 	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    	name TEXT NOT NULL,
-	owner INTEGER NOT NULL,
-	FOREIGN KEY (owner) REFERENCES users(id)
+	owner_id INTEGER NOT NULL,
+	FOREIGN KEY (owner_id) REFERENCES user(id)
 );
 
-CREATE TABLE rooms_users (
+CREATE TABLE room_user (
 	room_id INTEGER NOT NULL,
 	user_id INTEGER NOT NULL,
     PRIMARY KEY (room_id, user_id),
-   	FOREIGN KEY (room_id) REFERENCES rooms(id),
-   	FOREIGN KEY (user_id) REFERENCES users(id)
+   	FOREIGN KEY (room_id) REFERENCES room(id),
+   	FOREIGN KEY (user_id) REFERENCES user(id)
 );
 
-CREATE TABLE matches (
+CREATE TABLE team (
 	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	closed_date TEXT NOT NULL,
+	name TEXT NOT NULL
+);
+
+CREATE TABLE match (
+	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	start_date INTEGER NOT NULL,
+	points_winner INTEGER NOT NULL,
+	points_guess INTEGER NOT NULL,
+	team_one_id INTEGER NOT NULL,
+	team_two_id INTEGER NOT NULL,
 	room_id INTEGER NOT NULL,
-   	FOREIGN KEY (room_id) REFERENCES rooms(id)
+	FOREIGN KEY (team_one_id) REFERENCES team(id),
+	FOREIGN KEY (team_two_id) REFERENCES team(id),
+   	FOREIGN KEY (room_id) REFERENCES room(id),
+	CHECK (team_one_id != team_two_id),
+	CHECK (points_guess >= points_winner)
 );
 
-CREATE TABLE teams (
-	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	name TEXT NOT NULL,
+CREATE TABLE bet (
 	match_id INTEGER NOT NULL,
-	player_one INTEGER NOT NULL CHECK(player_one in (0, 1)),
-   	FOREIGN KEY (match_id) REFERENCES matches(id)
-	UNIQUE (match_id, player_one)
+	user_id INTEGER NOT NULL,
+	team_one_score INTEGER NOT NULL,
+	team_two_score INTEGER NOT NULL,
+	PRIMARY KEY (match_id, user_id),
+	FOREIGN KEY (match_id) REFERENCES match(id),
+	FOREIGN KEY (user_id) REFERENCES user(id)
 );
 
-CREATE TABLE bets (
-	team_id INTEGER NOT NULL,
-	user_id INTEGER NOT NULL,
-	score INTEGER NOT NULL,
-    PRIMARY KEY (team_id, user_id),
-   	FOREIGN KEY (team_id) REFERENCES teams(id),
-   	FOREIGN KEY (user_id) REFERENCES users(id) 
+CREATE TABLE result (
+	match_id INTEGER NOT NULL PRIMARY KEY,
+	team_one_score INTEGER NOT NULL,
+	team_two_score INTEGER NOT NULL,
+	FOREIGN KEY (match_id) REFERENCES match(id)
 );

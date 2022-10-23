@@ -23,14 +23,14 @@ impl RoomRepository {
             Room,
             "
             SELECT
-                rooms.id,
-                rooms.name
+                room.id,
+                room.name
             FROM
-                rooms_users
-                JOIN rooms ON rooms_users.room_id = rooms.id
+                room_user
+                JOIN room ON room_user.room_id = room.id
             WHERE
-                rooms_users.user_id = ?
-                OR rooms.owner = ?
+                room_user.user_id = ?
+                OR room.owner_id = ?
             ",
             user_id,
             user_id
@@ -48,9 +48,9 @@ impl RoomRepository {
             SELECT
                 id,
                 name,
-                owner
+                owner_id
             FROM
-                rooms
+                room
             WHERE
                 id = ?
             ",
@@ -70,8 +70,8 @@ impl RoomRepository {
         let inserted_room = sqlx::query_as!(
             Room,
             "
-            INSERT INTO rooms
-                (name, owner)
+            INSERT INTO room
+                (name, owner_id)
             VALUES
                 (?, ?);
 
@@ -79,7 +79,7 @@ impl RoomRepository {
                 id,
                 name
             FROM
-                rooms
+                room
             WHERE
                 rowid = last_insert_rowid()
             ",
@@ -98,12 +98,12 @@ impl RoomRepository {
             SELECT CASE 
                 WHEN EXISTS (SELECT *
                             FROM
-                                rooms 
-                                JOIN rooms_users ON rooms.id = rooms_users.room_id
+                                room 
+                                JOIN room_user ON room.id = room_user.room_id
                             WHERE
-                                rooms.id = ?
-                                AND (rooms_users.user_id = ?
-                                    OR rooms.owner = ?))
+                                room.id = ?
+                                AND (room_user.user_id = ?
+                                    OR room.owner_id = ?))
                     THEN 1
                 ELSE 0
             END present
@@ -127,7 +127,7 @@ impl RoomRepository {
 
         sqlx::query!(
             "
-            INSERT INTO rooms_users
+            INSERT INTO room_user
                 (room_id, user_id)
             VALUES
                 (?, ?)
@@ -150,14 +150,14 @@ impl RoomRepository {
             .await?
             .ok_or(RoomError::RoomNotFound(()))?;
 
-        if room.owner != user_id {
+        if room.owner_id != user_id {
             return Err(RoomError::NotAllowed(()))?;
         }
 
         sqlx::query!(
             "
-            DELETE FROM rooms_users WHERE room_id = ?;
-            DELETE FROM rooms WHERE  id = ?
+            DELETE FROM room_user WHERE room_id = ?;
+            DELETE FROM room WHERE  id = ?
             ",
             id,
             id

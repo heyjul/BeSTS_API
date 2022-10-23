@@ -11,13 +11,13 @@ pub struct Claims {
     pub grant_type: String,
     pub email: String,
     pub username: String,
-    pub sub: i64,
+    pub sub: String,
     pub exp: usize,
     pub iat: usize,
 }
 
 impl Claims {
-    fn new(grant_type: String, exp: u32, sub: i64, email: String, username: String) -> Claims {
+    fn new(grant_type: String, exp: u32, sub: String, email: String, username: String) -> Claims {
         let now = Local::now().timestamp() as usize;
         Claims {
             grant_type,
@@ -33,7 +33,7 @@ impl Claims {
 pub fn get_token(
     grant_type: String,
     exp: u32,
-    sub: i64,
+    sub: String,
     email: String,
     username: String,
 ) -> Result<String, Box<dyn std::error::Error>> {

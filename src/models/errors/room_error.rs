@@ -5,9 +5,6 @@ pub enum RoomError {
     #[error("Something whent wrong.")]
     #[response(status = 500)]
     InternalServerError(()),
-    #[error("Invalid argument.")]
-    #[response(status = 400)]
-    InvalidArgumentError(()),
     #[error("Room not found.")]
     #[response(status = 404)]
     RoomNotFound(()),

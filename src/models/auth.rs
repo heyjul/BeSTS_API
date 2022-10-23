@@ -5,7 +5,7 @@ use rocket::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::utils::jwt;
+use crate::utils::{hasher::decode_id, jwt};
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginRequest {
@@ -53,9 +53,17 @@ impl<'r> FromRequest<'r> for &'r User {
                     }
                 };
 
-                let user = User {
-                    id: claims.sub,
-                    email: claims.email,
+                let user = match decode_id(claims.sub) {
+                    Ok(id) => User {
+                        id,
+                        email: claims.email,
+                    },
+                    Err(_) => {
+                        return request::Outcome::Failure((
+                            Status::Unauthorized,
+                            "Cannot parse jwt token",
+                        ))
+                    }
                 };
 
                 return request::Outcome::Success(request.local_cache(move || user));

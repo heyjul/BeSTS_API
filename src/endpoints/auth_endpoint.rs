@@ -4,7 +4,7 @@ use crate::{
         auth_error::AuthError,
     },
     repositories::{auth_repository::AuthRepository, factory::Factory},
-    utils::{jwt, password},
+    utils::{hasher::encode_id, jwt, password},
 };
 use rocket::serde::json::Json;
 
@@ -36,14 +36,14 @@ pub async fn login(req: Json<LoginRequest>, factory: &Factory) -> Result<Json<To
         token: jwt::get_token(
             "normal".to_owned(),
             3600,
-            user.id,
+            encode_id(user.id),
             user.email.clone(),
             user.username.clone(),
         )?,
         refresh_token: jwt::get_token(
             "refresh".to_owned(),
             86400 * 7,
-            user.id,
+            encode_id(user.id),
             user.email,
             user.username,
         )?,

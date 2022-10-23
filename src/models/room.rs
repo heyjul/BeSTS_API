@@ -10,7 +10,7 @@ pub struct Room {
 pub struct FullRoom {
     pub id: i64,
     pub name: String,
-    pub owner: i64,
+    pub owner_id: i64,
 }
 #[derive(Serialize, Deserialize)]
 pub struct CreateRoomRequest {
