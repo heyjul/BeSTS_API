@@ -52,4 +52,5 @@ fn rocket() -> _ {
                 room_endpoint::delete,
             ],
         )
+        .mount("/teams", routes![team_endpoints::get,])
 }
