@@ -3,7 +3,6 @@ use rocket::serde::json::Json;
 use crate::{
     models::{team::TeamDto, team_error::TeamError},
     repositories::{factory::Factory, team_repository::TeamRepository},
-    utils::hasher::encode_id,
 };
 
 #[get("/")]
@@ -13,10 +12,7 @@ pub async fn get(factory: &Factory) -> Result<Json<Vec<TeamDto>>, TeamError> {
         .get()
         .await?
         .into_iter()
-        .map(|t| TeamDto {
-            id: encode_id(t.id),
-            name: t.name,
-        })
+        .map(TeamDto::from)
         .collect();
 
     Ok(Json(teams))

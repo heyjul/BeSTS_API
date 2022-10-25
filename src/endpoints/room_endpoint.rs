@@ -7,7 +7,7 @@ use crate::{
         room_error::RoomError,
     },
     repositories::{factory::Factory, room_repository::RoomRepository},
-    utils::hasher::{decode_id, encode_id},
+    utils::hasher::decode_id,
 };
 
 #[get("/")]
@@ -17,10 +17,7 @@ pub async fn get(factory: &Factory, user: &User) -> Result<Json<Vec<RoomDto>>, R
         .get_rooms(user.id)
         .await?
         .into_iter()
-        .map(|r| RoomDto {
-            id: Some(encode_id(r.id)),
-            name: r.name,
-        })
+        .map(RoomDto::from)
         .collect();
 
     Ok(Json(rooms))
@@ -30,7 +27,7 @@ pub async fn get(factory: &Factory, user: &User) -> Result<Json<Vec<RoomDto>>, R
 pub async fn get_by_id(
     id: String,
     factory: &Factory,
-    user: &User,
+    _user: &User,
 ) -> Result<Json<RoomDto>, RoomError> {
     let id = decode_id(id)?;
 
@@ -38,23 +35,10 @@ pub async fn get_by_id(
         .get::<RoomRepository>()
         .get_room(id)
         .await?
-        .map(|r| {
-            let mut room = RoomDto {
-                id: None,
-                name: r.name,
-            };
+        .map(RoomDto::from)
+        .ok_or(RoomError::RoomNotFound(()))?;
 
-            if r.owner_id == user.id {
-                room.id = Some(encode_id(r.id))
-            }
-
-            room
-        });
-
-    match room {
-        Some(room) => Ok(Json(room)),
-        None => Err(RoomError::RoomNotFound(())),
-    }
+    Ok(Json(room))
 }
 
 #[post("/", data = "<req>")]
@@ -67,10 +51,7 @@ pub async fn create(
         .get::<RoomRepository>()
         .create(req.into_inner(), user.id)
         .await
-        .map(|r| RoomDto {
-            id: Some(encode_id(r.id)),
-            name: r.name,
-        })?;
+        .map(RoomDto::from)?;
 
     Ok(Json(room))
 }
@@ -79,12 +60,13 @@ pub async fn create(
 pub async fn join(id: String, factory: &Factory, user: &User) -> Result<Json<RoomDto>, RoomError> {
     let id = decode_id(id)?;
 
-    let room = factory.get::<RoomRepository>().join(id, user.id).await?;
+    let room = factory
+        .get::<RoomRepository>()
+        .join(id, user.id)
+        .await
+        .map(RoomDto::from)?;
 
-    Ok(Json(RoomDto {
-        id: Some(encode_id(room.id)),
-        name: room.name,
-    }))
+    Ok(Json(room))
 }
 
 #[delete("/<id>")]

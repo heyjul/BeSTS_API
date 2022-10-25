@@ -1,7 +1,7 @@
 use sqlx::{Pool, Sqlite};
 
 use crate::models::{
-    room::{CreateRoomRequest, FullRoom, Room},
+    room::{CreateRoomRequest, Room},
     room_error::RoomError,
 };
 
@@ -24,7 +24,8 @@ impl RoomRepository {
             "
             SELECT
                 room.id,
-                room.name
+                room.name,
+                room.owner_id
             FROM
                 room_user
                 JOIN room ON room_user.room_id = room.id
@@ -41,9 +42,9 @@ impl RoomRepository {
         Ok(rooms)
     }
 
-    pub async fn get_room(&self, id: i64) -> Result<Option<FullRoom>, Box<dyn std::error::Error>> {
+    pub async fn get_room(&self, id: i64) -> Result<Option<Room>, Box<dyn std::error::Error>> {
         let room = sqlx::query_as!(
-            FullRoom,
+            Room,
             "
             SELECT
                 id,
@@ -77,7 +78,8 @@ impl RoomRepository {
 
             SELECT
                 id,
-                name
+                name,
+                owner_id
             FROM
                 room
             WHERE
@@ -141,6 +143,7 @@ impl RoomRepository {
         Ok(Room {
             id: room.id,
             name: room.name,
+            owner_id: room.owner_id,
         })
     }
 

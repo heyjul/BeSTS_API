@@ -1,11 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-pub struct Room {
-    pub id: i64,
-    pub name: String,
-}
+use crate::utils::hasher::encode_id;
 
-pub struct FullRoom {
+pub struct Room {
     pub id: i64,
     pub name: String,
     pub owner_id: i64,
@@ -18,6 +15,15 @@ pub struct CreateRoomRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct RoomDto {
-    pub id: Option<String>,
+    pub id: String,
     pub name: String,
+}
+
+impl From<Room> for RoomDto {
+    fn from(value: Room) -> Self {
+        Self {
+            id: encode_id(value.id),
+            name: value.name,
+        }
+    }
 }

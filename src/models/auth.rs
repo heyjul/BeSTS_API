@@ -1,6 +1,7 @@
 use rocket::{
     http::Status,
-    request::{self, FromRequest},
+    outcome::{try_outcome, Outcome::*},
+    request::{FromRequest, Outcome},
     Request,
 };
 use serde::{Deserialize, Serialize};
@@ -43,17 +44,12 @@ pub struct User {
 impl<'r> FromRequest<'r> for &'r User {
     type Error = &'r str;
 
-    async fn from_request(request: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+    async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         if let Some(bearer) = request.headers().get_one("Authorization") {
             if let Some((_, token)) = bearer.split_once(' ') {
                 let claims = match jwt::verify(token) {
                     Ok(claims) => claims,
-                    Err(_) => {
-                        return request::Outcome::Failure((
-                            Status::Unauthorized,
-                            "Cannot parse jwt token",
-                        ))
-                    }
+                    Err(_) => return Failure((Status::Unauthorized, "Cannot parse jwt token")),
                 };
 
                 let user = match decode_id(claims.sub) {
@@ -61,19 +57,14 @@ impl<'r> FromRequest<'r> for &'r User {
                         id,
                         email: claims.email,
                     },
-                    Err(_) => {
-                        return request::Outcome::Failure((
-                            Status::Unauthorized,
-                            "Cannot parse jwt token",
-                        ))
-                    }
+                    Err(_) => return Failure((Status::Unauthorized, "Cannot parse jwt token")),
                 };
 
-                return request::Outcome::Success(request.local_cache(move || user));
+                return Success(request.local_cache(move || user));
             }
         }
 
-        request::Outcome::Failure((Status::Unauthorized, "You must be connected"))
+        Failure((Status::Unauthorized, "You must be connected"))
     }
 }
 
@@ -87,17 +78,17 @@ pub struct RoomUser {
 impl<'r> FromRequest<'r> for &'r RoomUser {
     type Error = &'r str;
 
-    async fn from_request(request: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        let user = rocket::outcome::try_outcome!(request.guard::<&User>().await);
-        let factory = rocket::outcome::try_outcome!(request.guard::<&Factory>().await);
+    async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        let user = try_outcome!(request.guard::<&User>().await);
+        let factory = try_outcome!(request.guard::<&Factory>().await);
 
         match factory.get::<RoomRepository>().get_rooms(user.id).await {
-            Ok(rooms) => request::Outcome::Success(request.local_cache(move || RoomUser {
+            Ok(rooms) => Success(request.local_cache(move || RoomUser {
                 id: user.id,
                 email: user.email.clone(),
-                rooms: rooms.into_iter().map(|r| r.id).collect::<Vec<_>>(),
+                rooms: rooms.into_iter().map(|r| r.id).collect(),
             })),
-            Err(_) => request::Outcome::Failure((Status::Unauthorized, "Cannot get user's rooms")),
+            Err(_) => Failure((Status::Unauthorized, "Cannot get user's rooms")),
         }
     }
 }
