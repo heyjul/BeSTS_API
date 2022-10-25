@@ -1,17 +1,16 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
 pub struct Room {
     pub id: i64,
     pub name: String,
 }
 
-#[derive(Serialize, Deserialize)]
 pub struct FullRoom {
     pub id: i64,
     pub name: String,
     pub owner_id: i64,
 }
+
 #[derive(Serialize, Deserialize)]
 pub struct CreateRoomRequest {
     pub name: String,

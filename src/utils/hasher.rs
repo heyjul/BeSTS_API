@@ -1,7 +1,8 @@
 use once_cell::sync::Lazy;
 
 static HASHER: Lazy<hashids::HashIds> = Lazy::new(|| {
-    hashids::HashIds::new_with_salt("Sel de Guérande".to_owned()).expect("Could not create hashids")
+    hashids::HashIds::new_with_salt_and_min_length("Sel de Guérande".to_owned(), 5)
+        .expect("Could not create hashids")
 });
 
 pub fn encode_id(id: i64) -> String {

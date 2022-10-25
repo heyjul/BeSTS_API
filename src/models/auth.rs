@@ -5,7 +5,10 @@ use rocket::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{hasher::decode_id, jwt};
+use crate::{
+    repositories::{factory::Factory, room_repository::RoomRepository},
+    utils::{hasher::decode_id, jwt},
+};
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginRequest {
@@ -71,5 +74,30 @@ impl<'r> FromRequest<'r> for &'r User {
         }
 
         request::Outcome::Failure((Status::Unauthorized, "You must be connected"))
+    }
+}
+
+pub struct RoomUser {
+    pub id: i64,
+    pub email: String,
+    pub rooms: Vec<i64>,
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for &'r RoomUser {
+    type Error = &'r str;
+
+    async fn from_request(request: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+        let user = rocket::outcome::try_outcome!(request.guard::<&User>().await);
+        let factory = rocket::outcome::try_outcome!(request.guard::<&Factory>().await);
+
+        match factory.get::<RoomRepository>().get_rooms(user.id).await {
+            Ok(rooms) => request::Outcome::Success(request.local_cache(move || RoomUser {
+                id: user.id,
+                email: user.email.clone(),
+                rooms: rooms.into_iter().map(|r| r.id).collect::<Vec<_>>(),
+            })),
+            Err(_) => request::Outcome::Failure((Status::Unauthorized, "Cannot get user's rooms")),
+        }
     }
 }

@@ -29,9 +29,9 @@ CREATE TABLE team (
 
 CREATE TABLE match (
 	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	start_date INTEGER NOT NULL,
-	points_winner INTEGER NOT NULL,
-	points_guess INTEGER NOT NULL,
+	start_date DATETIME NOT NULL,
+	winner_points INTEGER NOT NULL,
+	guess_points INTEGER NOT NULL,
 	team_one_id INTEGER NOT NULL,
 	team_two_id INTEGER NOT NULL,
 	room_id INTEGER NOT NULL,
@@ -39,7 +39,7 @@ CREATE TABLE match (
 	FOREIGN KEY (team_two_id) REFERENCES team(id),
    	FOREIGN KEY (room_id) REFERENCES room(id),
 	CHECK (team_one_id != team_two_id),
-	CHECK (points_guess >= points_winner)
+	CHECK (guess_points >= winner_points)
 );
 
 CREATE TABLE bet (

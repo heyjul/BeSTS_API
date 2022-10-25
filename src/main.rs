@@ -53,4 +53,8 @@ fn rocket() -> _ {
             ],
         )
         .mount("/teams", routes![team_endpoints::get,])
+        .mount(
+            "/matches",
+            routes![match_endpoint::get, match_endpoint::create_or_update],
+        )
 }
