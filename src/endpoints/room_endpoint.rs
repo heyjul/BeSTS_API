@@ -2,7 +2,7 @@ use rocket::serde::json::Json;
 
 use crate::{
     models::{
-        auth::User,
+        auth::{RoomUser, User},
         room::{CreateRoomRequest, RoomDto},
         room_error::RoomError,
     },
@@ -23,13 +23,13 @@ pub async fn get(factory: &Factory, user: &User) -> Result<Json<Vec<RoomDto>>, R
     Ok(Json(rooms))
 }
 
-#[get("/<id>")]
+#[get("/<room_id>")]
 pub async fn get_by_id(
-    id: String,
+    room_id: String,
     factory: &Factory,
-    _user: &User,
+    _user: &RoomUser,
 ) -> Result<Json<RoomDto>, RoomError> {
-    let id = decode_id(id)?;
+    let id = decode_id(room_id)?;
 
     let room = factory
         .get::<RoomRepository>()

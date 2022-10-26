@@ -14,13 +14,9 @@ use crate::{
 pub async fn get(
     room_id: String,
     factory: &Factory,
-    user: &RoomUser,
+    _user: &RoomUser,
 ) -> Result<Json<Vec<MatchDto>>, MatchError> {
     let room_id = decode_id(room_id)?;
-
-    if !user.rooms.iter().any(|&r| r == room_id) {
-        return Err(MatchError::Forbidden(()));
-    }
 
     let matches = factory
         .get::<MatchRepository>()
@@ -33,19 +29,13 @@ pub async fn get(
     Ok(Json(matches))
 }
 
-#[put("/<room_id>", data = "<req>")]
+#[put("/<_room_id>", data = "<req>")]
 pub async fn create_or_update(
-    room_id: String,
+    _room_id: String,
     req: Json<CreateMatchRequestDto>,
     factory: &Factory,
-    user: &RoomUser,
+    _user: &RoomUser,
 ) -> Result<Json<MatchDto>, MatchError> {
-    let room_id = decode_id(room_id)?;
-
-    if !user.rooms.iter().any(|&r| r == room_id) {
-        return Err(MatchError::Forbidden(()));
-    }
-
     let req: CreateMatchRequest = req.into_inner().try_into()?;
 
     let r#match = if req.id.is_some() {

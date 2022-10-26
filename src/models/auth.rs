@@ -71,7 +71,6 @@ impl<'r> FromRequest<'r> for &'r User {
 pub struct RoomUser {
     pub id: i64,
     pub email: String,
-    pub rooms: Vec<i64>,
 }
 
 #[rocket::async_trait]
@@ -80,14 +79,52 @@ impl<'r> FromRequest<'r> for &'r RoomUser {
 
     async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         let user = try_outcome!(request.guard::<&User>().await);
+
+        let room_id = if let Some(route) = request.route() {
+            request
+                .uri()
+                .path()
+                .segments()
+                .zip(route.uri.origin.path().segments())
+                .find_map(|(value, mask)| {
+                    if mask.contains("room_id") {
+                        Some(value)
+                    } else {
+                        None
+                    }
+                })
+        } else {
+            return Failure((Status::Unauthorized, "Cannot find the requested room id"));
+        };
+
+        let room_id = match room_id {
+            Some(room_id) => room_id,
+            None => return Failure((Status::Unauthorized, "Cannot find the requested room id")),
+        };
+
+        let room_id = match decode_id(room_id.to_owned()) {
+            Ok(room_id) => room_id,
+            Err(_) => {
+                return Failure((
+                    Status::InternalServerError,
+                    "Cannot parse the requested room id",
+                ))
+            }
+        };
+
         let factory = try_outcome!(request.guard::<&Factory>().await);
 
         match factory.get::<RoomRepository>().get_rooms(user.id).await {
-            Ok(rooms) => Success(request.local_cache(move || RoomUser {
-                id: user.id,
-                email: user.email.clone(),
-                rooms: rooms.into_iter().map(|r| r.id).collect(),
-            })),
+            Ok(rooms) => {
+                if rooms.iter().any(|x| x.id == room_id) {
+                    Success(request.local_cache(move || RoomUser {
+                        id: user.id,
+                        email: user.email.clone(),
+                    }))
+                } else {
+                    Failure((Status::Unauthorized, "You do not have access to this room"))
+                }
+            }
             Err(_) => Failure((Status::Unauthorized, "Cannot get user's rooms")),
         }
     }

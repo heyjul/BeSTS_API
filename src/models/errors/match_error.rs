@@ -2,9 +2,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug, Responder)]
 pub enum MatchError {
-    #[error("You do not have access to these matches.")]
-    #[response(status = 500)]
-    Forbidden(()),
     #[error("Something whent wrong.")]
     #[response(status = 500)]
     InternalServerError(()),
