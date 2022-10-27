@@ -123,4 +123,34 @@ impl MatchRepository {
 
         Ok(r#match)
     }
+
+    pub async fn is_allowed(
+        &self,
+        match_id: i64,
+        user_id: i64,
+    ) -> Result<bool, Box<dyn std::error::Error>> {
+        let result = sqlx::query!(
+            "
+            SELECT
+                match.id
+            FROM
+                match
+                JOIN room on match.room_id = room.id
+                JOIN room_user on room.id = room_user.room_id
+            WHERE
+                match.id = ?
+                AND (
+                    room.owner_id = ?
+                    OR room_user.user_id = ?
+                );
+            ",
+            match_id,
+            user_id,
+            user_id,
+        )
+        .fetch_optional(&self.db_pool)
+        .await?;
+
+        Ok(result.is_some())
+    }
 }

@@ -57,4 +57,5 @@ fn rocket() -> _ {
             "/matches",
             routes![match_endpoint::get, match_endpoint::create_or_update],
         )
+        .mount("/bets", routes![bet_endpoint::create_or_update])
 }
