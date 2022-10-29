@@ -25,6 +25,7 @@ impl RoomRepository {
             SELECT
                 room.id,
                 room.name,
+                room.description,
                 room.owner_id
             FROM
                 room_user
@@ -49,6 +50,7 @@ impl RoomRepository {
             SELECT
                 id,
                 name,
+                description,
                 owner_id
             FROM
                 room
@@ -72,13 +74,14 @@ impl RoomRepository {
             Room,
             "
             INSERT INTO room
-                (name, owner_id)
+                (name, description, owner_id)
             VALUES
-                (?, ?);
+                (?, ?, ?);
 
             SELECT
                 id,
                 name,
+                description,
                 owner_id
             FROM
                 room
@@ -86,6 +89,7 @@ impl RoomRepository {
                 rowid = last_insert_rowid()
             ",
             room.name,
+            room.description,
             user_id
         )
         .fetch_one(&self.db_pool)
@@ -140,11 +144,7 @@ impl RoomRepository {
         .execute(&self.db_pool)
         .await?;
 
-        Ok(Room {
-            id: room.id,
-            name: room.name,
-            owner_id: room.owner_id,
-        })
+        Ok(room)
     }
 
     pub async fn delete(&self, id: i64, user_id: i64) -> Result<(), Box<dyn std::error::Error>> {

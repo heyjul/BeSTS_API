@@ -4,8 +4,9 @@ extern crate rocket;
 use endpoints::*;
 use repositories::factory::SoccerDb;
 use rocket::{
-    fairing::{self, AdHoc},
-    Build, Rocket,
+    fairing::{self, AdHoc, Fairing, Info, Kind},
+    http::Header,
+    Build, Request, Response, Rocket,
 };
 use rocket_db_pools::Database;
 
@@ -32,6 +33,7 @@ fn rocket() -> _ {
     dotenvy::dotenv().ok();
 
     rocket::build()
+        .attach(CORS)
         .attach(SoccerDb::init())
         .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
         .mount(
@@ -40,6 +42,7 @@ fn rocket() -> _ {
                 auth_endpoint::register,
                 auth_endpoint::login,
                 auth_endpoint::refresh_token,
+                all_options,
             ],
         )
         .mount(
@@ -58,4 +61,33 @@ fn rocket() -> _ {
             routes![match_endpoint::get, match_endpoint::create_or_update],
         )
         .mount("/bets", routes![bet_endpoint::create_or_update])
+}
+
+/// Catches all OPTION requests in order to get the CORS related Fairing triggered.
+#[options("/<_..>")]
+fn all_options() {
+    /* Intentionally left empty */
+}
+
+pub struct CORS;
+
+#[rocket::async_trait]
+impl Fairing for CORS {
+    fn info(&self) -> Info {
+        Info {
+            name: "Add CORS headers to responses",
+            kind: Kind::Response,
+        }
+    }
+
+    async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
+        eprintln!("Setting CORS");
+        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        response.set_header(Header::new(
+            "Access-Control-Allow-Methods",
+            "POST, GET, PATCH, OPTIONS",
+        ));
+        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+    }
 }

@@ -10,6 +10,7 @@ CREATE TABLE user (
 CREATE TABLE room (
 	id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
    	name TEXT NOT NULL,
+	description TEXT,
 	owner_id INTEGER NOT NULL,
 	FOREIGN KEY (owner_id) REFERENCES user(id)
 );
