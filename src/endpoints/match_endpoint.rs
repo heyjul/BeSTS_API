@@ -4,7 +4,7 @@ use crate::{
     models::{
         auth::RoomUser,
         match_error::MatchError,
-        r#match::{CreateMatchRequest, CreateMatchRequestDto, MatchDto},
+        r#match::{CreateMatchRequest, CreateMatchRequestDto, FullMatchDto, MatchDto},
     },
     repositories::{factory::Factory, match_repository::MatchRepository},
     utils::hasher::decode_id,
@@ -14,16 +14,16 @@ use crate::{
 pub async fn get(
     room_id: String,
     factory: &Factory,
-    _user: &RoomUser,
-) -> Result<Json<Vec<MatchDto>>, MatchError> {
+    user: &RoomUser,
+) -> Result<Json<Vec<FullMatchDto>>, MatchError> {
     let room_id = decode_id(room_id)?;
 
     let matches = factory
         .get::<MatchRepository>()
-        .get(room_id)
+        .get(room_id, user.id)
         .await?
         .into_iter()
-        .map(MatchDto::from)
+        .map(FullMatchDto::from)
         .collect();
 
     Ok(Json(matches))

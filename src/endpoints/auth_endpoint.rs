@@ -28,6 +28,8 @@ pub async fn login(req: Json<LoginRequest>, factory: &Factory) -> Result<Json<To
 
     let login_result = password::verify(&user.password, &req.password)?;
 
+    eprintln!("{login_result}");
+
     if !login_result {
         return Err(AuthError::InvalidCredentials(()));
     }

@@ -10,6 +10,7 @@ pub struct Bet {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BetDto {
     pub match_id: String,
     pub user_id: String,
@@ -29,6 +30,7 @@ impl From<Bet> for BetDto {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateBetRequestDto {
     pub team_one_score: i64,
     pub team_two_score: i64,

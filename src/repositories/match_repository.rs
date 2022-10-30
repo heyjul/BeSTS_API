@@ -1,6 +1,6 @@
 use sqlx::{Pool, Sqlite};
 
-use crate::models::r#match::{CreateMatchRequest, Match};
+use crate::models::r#match::{CreateMatchRequest, FullMatch, Match};
 
 use super::factory::RepositoryFactory;
 
@@ -15,26 +15,35 @@ impl RepositoryFactory for MatchRepository {
 }
 
 impl MatchRepository {
-    pub async fn get(&self, room_id: i64) -> Result<Vec<Match>, Box<dyn std::error::Error>> {
-        let matches = sqlx::query_as!(
-            Match,
+    pub async fn get(
+        &self,
+        room_id: i64,
+        user_id: i64,
+    ) -> Result<Vec<FullMatch>, Box<dyn std::error::Error>> {
+        let matches = sqlx::query_as::<_, FullMatch>(
             r#"
             SELECT
                 match.id,
                 team1.name AS team_one,
                 team2.name AS team_two,
-                match.start_date AS "start_date: _",
+                match.start_date AS start_date,
                 match.winner_points,
-                match.guess_points
+                match.guess_points,
+                bet.team_one_score AS guessed_team_one_score,
+                bet.team_two_score AS guessed_team_two_score
             FROM
                 match
                 JOIN team as team1 on match.team_one_id = team1.id
                 JOIN team as team2 on match.team_two_id = team2.id
+                LEFT JOIN bet ON match.id = bet.match_id AND bet.user_id = ?
             WHERE
                 room_id = ?
+            ORDER BY
+                match.start_date
             "#,
-            room_id
         )
+        .bind(user_id)
+        .bind(room_id)
         .fetch_all(&self.db_pool)
         .await?;
 

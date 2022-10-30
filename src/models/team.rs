@@ -8,6 +8,7 @@ pub struct Team {
 }
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TeamDto {
     pub id: String,
     pub name: String,

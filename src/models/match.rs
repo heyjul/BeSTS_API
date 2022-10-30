@@ -14,7 +14,20 @@ pub struct Match {
     pub guess_points: i64,
 }
 
+#[derive(sqlx::FromRow)]
+pub struct FullMatch {
+    pub id: i64,
+    pub team_one: String,
+    pub team_two: String,
+    pub start_date: DateTime<Utc>,
+    pub winner_points: i64,
+    pub guess_points: i64,
+    pub guessed_team_one_score: Option<i64>,
+    pub guessed_team_two_score: Option<i64>,
+}
+
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MatchDto {
     pub id: String,
     pub team_one: String,
@@ -22,6 +35,19 @@ pub struct MatchDto {
     pub start_date: DateTime<Utc>,
     pub winner_points: i64,
     pub guess_points: i64,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FullMatchDto {
+    pub id: String,
+    pub team_one: String,
+    pub team_two: String,
+    pub start_date: DateTime<Utc>,
+    pub winner_points: i64,
+    pub guess_points: i64,
+    pub guessed_team_one_score: Option<i64>,
+    pub guessed_team_two_score: Option<i64>,
 }
 
 impl From<Match> for MatchDto {
@@ -37,7 +63,53 @@ impl From<Match> for MatchDto {
     }
 }
 
+impl From<Match> for FullMatch {
+    fn from(value: Match) -> Self {
+        Self {
+            id: value.id,
+            team_one: value.team_one,
+            team_two: value.team_two,
+            start_date: value.start_date,
+            winner_points: value.winner_points,
+            guess_points: value.guess_points,
+            guessed_team_one_score: None,
+            guessed_team_two_score: None,
+        }
+    }
+}
+
+impl From<Match> for FullMatchDto {
+    fn from(value: Match) -> Self {
+        Self {
+            id: encode_id(value.id),
+            team_one: value.team_one,
+            team_two: value.team_two,
+            start_date: value.start_date,
+            winner_points: value.winner_points,
+            guess_points: value.guess_points,
+            guessed_team_one_score: None,
+            guessed_team_two_score: None,
+        }
+    }
+}
+
+impl From<FullMatch> for FullMatchDto {
+    fn from(value: FullMatch) -> Self {
+        Self {
+            id: encode_id(value.id),
+            team_one: value.team_one,
+            team_two: value.team_two,
+            start_date: value.start_date,
+            winner_points: value.winner_points,
+            guess_points: value.guess_points,
+            guessed_team_one_score: value.guessed_team_one_score,
+            guessed_team_two_score: value.guessed_team_two_score,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateMatchRequestDto {
     pub id: Option<String>,
     pub team_one_id: String,
@@ -45,7 +117,7 @@ pub struct CreateMatchRequestDto {
     pub start_date: DateTime<Utc>,
     pub winner_points: i64,
     pub guess_points: i64,
-    pub room_id: Option<String>,
+    pub room_id: String,
 }
 
 pub struct CreateMatchRequest {
@@ -55,7 +127,7 @@ pub struct CreateMatchRequest {
     pub start_date: DateTime<Utc>,
     pub winner_points: i64,
     pub guess_points: i64,
-    pub room_id: Option<i64>,
+    pub room_id: i64,
 }
 
 impl TryFrom<CreateMatchRequestDto> for CreateMatchRequest {
@@ -69,7 +141,7 @@ impl TryFrom<CreateMatchRequestDto> for CreateMatchRequest {
             start_date: value.start_date,
             winner_points: value.winner_points,
             guess_points: value.guess_points,
-            room_id: value.room_id.map(decode_id).transpose()?,
+            room_id: decode_id(value.room_id)?,
         })
     }
 }

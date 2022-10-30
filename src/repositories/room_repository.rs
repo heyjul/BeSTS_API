@@ -28,8 +28,8 @@ impl RoomRepository {
                 room.description,
                 room.owner_id
             FROM
-                room_user
-                JOIN room ON room_user.room_id = room.id
+                room 
+                LEFT JOIN room_user ON room.id = room_user.room_id
             WHERE
                 room_user.user_id = ?
                 OR room.owner_id = ?

@@ -24,6 +24,8 @@ impl TeamRepository {
                 name
             FROM
                 team
+            ORDER BY
+                2
             "
         )
         .fetch_all(&self.db_pool)
