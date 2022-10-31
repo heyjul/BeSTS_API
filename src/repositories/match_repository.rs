@@ -145,7 +145,7 @@ impl MatchRepository {
             FROM
                 match
                 JOIN room on match.room_id = room.id
-                JOIN room_user on room.id = room_user.room_id
+                LEFT JOIN room_user on room.id = room_user.room_id
             WHERE
                 match.id = ?
                 AND (
@@ -161,5 +161,37 @@ impl MatchRepository {
         .await?;
 
         Ok(result.is_some())
+    }
+
+    pub async fn delete(
+        &self,
+        match_id: i64,
+        user_id: i64,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        sqlx::query!(
+            "
+            DELETE FROM 
+                match
+            WHERE
+                id = ?
+                AND EXISTS ( 
+                    SELECT
+                        *
+                    FROM 
+                        match
+                        JOIN room ON match.room_id = room.id
+                    WHERE
+                        room.owner_id = ?
+                        AND match.id = ?
+                    );
+            ",
+            match_id,
+            user_id,
+            match_id,
+        )
+        .execute(&self.db_pool)
+        .await?;
+
+        Ok(())
     }
 }

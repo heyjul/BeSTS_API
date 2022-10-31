@@ -3,13 +3,10 @@ use rocket::serde::json::Json;
 use crate::{
     models::{
         auth::{RoomUser, User},
-        r#match::FullMatchDto,
-        room::{CreateRoomRequest, FullRoomDto, RoomDto},
+        room::{CreateRoomRequest, RoomDto},
         room_error::RoomError,
     },
-    repositories::{
-        factory::Factory, match_repository::MatchRepository, room_repository::RoomRepository,
-    },
+    repositories::{factory::Factory, room_repository::RoomRepository},
     utils::hasher::decode_id,
 };
 
@@ -30,8 +27,8 @@ pub async fn get(factory: &Factory, user: &User) -> Result<Json<Vec<RoomDto>>, R
 pub async fn get_by_id(
     room_id: String,
     factory: &Factory,
-    user: &RoomUser,
-) -> Result<Json<FullRoomDto>, RoomError> {
+    _user: &RoomUser,
+) -> Result<Json<RoomDto>, RoomError> {
     let id = decode_id(room_id)?;
 
     let room = factory
@@ -41,15 +38,7 @@ pub async fn get_by_id(
         .map(RoomDto::from)
         .ok_or(RoomError::RoomNotFound(()))?;
 
-    let matches: Vec<_> = factory
-        .get::<MatchRepository>()
-        .get(id, user.id)
-        .await?
-        .into_iter()
-        .map(FullMatchDto::from)
-        .collect();
-
-    Ok(Json(FullRoomDto::new(room, matches)))
+    Ok(Json(room))
 }
 
 #[post("/", data = "<req>")]

@@ -2,7 +2,7 @@ use rocket::serde::json::Json;
 
 use crate::{
     models::{
-        auth::RoomUser,
+        auth::{MatchUser, RoomUser},
         match_error::MatchError,
         r#match::{CreateMatchRequest, CreateMatchRequestDto, FullMatchDto, MatchDto},
     },
@@ -53,4 +53,20 @@ pub async fn create_or_update(
     };
 
     Ok(Json(r#match))
+}
+
+#[delete("/<match_id>")]
+pub async fn delete(
+    match_id: String,
+    factory: &Factory,
+    user: &MatchUser,
+) -> Result<(), MatchError> {
+    let match_id = decode_id(match_id)?;
+
+    factory
+        .get::<MatchRepository>()
+        .delete(match_id, user.id)
+        .await?;
+
+    Ok(())
 }

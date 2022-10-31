@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::utils::hasher::encode_id;
 
-use super::r#match::{FullMatchDto, MatchDto};
+use super::r#match::FullMatchDto;
 
 pub struct Room {
     pub id: i64,
@@ -46,16 +46,4 @@ pub struct FullRoomDto {
     pub description: Option<String>,
     pub owner_id: String,
     pub matches: Vec<FullMatchDto>,
-}
-
-impl FullRoomDto {
-    pub fn new(room: RoomDto, matches: Vec<FullMatchDto>) -> Self {
-        Self {
-            id: room.id,
-            name: room.name,
-            description: room.description,
-            owner_id: room.owner_id,
-            matches,
-        }
-    }
 }

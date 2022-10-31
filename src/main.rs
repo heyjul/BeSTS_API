@@ -58,7 +58,11 @@ fn rocket() -> _ {
         .mount("/teams", routes![team_endpoints::get,])
         .mount(
             "/matches",
-            routes![match_endpoint::get, match_endpoint::create_or_update],
+            routes![
+                match_endpoint::get,
+                match_endpoint::create_or_update,
+                match_endpoint::delete
+            ],
         )
         .mount("/bets", routes![bet_endpoint::create_or_update])
 }
@@ -84,7 +88,7 @@ impl Fairing for CORS {
         response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
         response.set_header(Header::new(
             "Access-Control-Allow-Methods",
-            "POST, GET, PATCH, OPTIONS, PUT",
+            "POST, GET, DELETE, OPTIONS, PUT",
         ));
         response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
