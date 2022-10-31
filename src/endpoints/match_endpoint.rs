@@ -29,6 +29,23 @@ pub async fn get(
     Ok(Json(matches))
 }
 
+#[get("/match/<match_id>")]
+pub async fn get_by_id(
+    match_id: String,
+    factory: &Factory,
+    user: &MatchUser,
+) -> Result<Json<FullMatchDto>, MatchError> {
+    let match_id = decode_id(match_id)?;
+
+    let r#match = factory
+        .get::<MatchRepository>()
+        .get_by_id(match_id, user.id)
+        .await?
+        .ok_or(MatchError::NotFound(()))?;
+
+    Ok(Json(r#match.into()))
+}
+
 #[put("/<_room_id>", data = "<req>")]
 pub async fn create_or_update(
     _room_id: String,

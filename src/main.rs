@@ -61,7 +61,8 @@ fn rocket() -> _ {
             routes![
                 match_endpoint::get,
                 match_endpoint::create_or_update,
-                match_endpoint::delete
+                match_endpoint::delete,
+                match_endpoint::get_by_id,
             ],
         )
         .mount("/bets", routes![bet_endpoint::create_or_update])

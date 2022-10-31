@@ -5,6 +5,9 @@ pub enum MatchError {
     #[error("Something whent wrong.")]
     #[response(status = 500)]
     InternalServerError(()),
+    #[error("Not found.")]
+    #[response(status = 404)]
+    NotFound(()),
 }
 
 impl From<Box<dyn std::error::Error>> for MatchError {

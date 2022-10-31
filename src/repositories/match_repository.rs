@@ -194,4 +194,39 @@ impl MatchRepository {
 
         Ok(())
     }
+
+    pub async fn get_by_id(
+        &self,
+        match_id: i64,
+        user_id: i64,
+    ) -> Result<Option<FullMatch>, Box<dyn std::error::Error>> {
+        let r#match = sqlx::query_as::<_, FullMatch>(
+            r#"
+            SELECT
+                match.id,
+                team1.name AS team_one,
+                team2.name AS team_two,
+                match.start_date AS start_date,
+                match.winner_points,
+                match.guess_points,
+                bet.team_one_score AS guessed_team_one_score,
+                bet.team_two_score AS guessed_team_two_score
+            FROM
+                match
+                JOIN team as team1 on match.team_one_id = team1.id
+                JOIN team as team2 on match.team_two_id = team2.id
+                LEFT JOIN bet ON match.id = bet.match_id AND bet.user_id = ?
+            WHERE
+                match_id = ?
+            ORDER BY
+                match.start_date
+            "#,
+        )
+        .bind(user_id)
+        .bind(match_id)
+        .fetch_optional(&self.db_pool)
+        .await?;
+
+        Ok(r#match)
+    }
 }
