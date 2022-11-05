@@ -75,6 +75,7 @@ impl AuthRepository {
         &self,
         email: &str,
     ) -> Result<Option<User>, Box<dyn std::error::Error>> {
+        let email = email.to_ascii_lowercase();
         let user = sqlx::query_as!(
             User,
             "
@@ -86,7 +87,7 @@ impl AuthRepository {
             FROM
                 user
             WHERE
-                email = ?
+                LOWER(email) = ?
             ",
             email
         )
