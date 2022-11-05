@@ -18,17 +18,38 @@ jobs:
           profile: minimal
           toolchain: stable
 
-      - name: Prepare for sqlx
-        run: |
-          cargo install sqlx-cli
-          sqlx database create
-          sqlx migrate run
+      - name: Install cargo cross
+        run: cargo install cross
+
+      - name: Install podman
+        run: sudo apt-get -y install podman
 
       - name: Build
-        run: cargo build --release --locked
+        run: cross build --release --target armv7-unknown-linux-gnueabihf
 
-      - name: Upload binaries to release
-        uses: actions/upload-artifact@v2
+      - name: Create package
+        run: tar -czvf soccer.tar.gz ./Rocket.toml -C ./target/armv7-unknown-linux-gnueabihf/release soccer_bet_api
+
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          name: linux
-          path: target/release/linux
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: ${{ env.RELEASE_VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Upload binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./soccer.tar.gz
+          asset_name: soccer.tar.gz
+          asset_content_type: application/x-compressed-tar

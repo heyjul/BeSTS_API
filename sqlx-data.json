@@ -1,0 +1,475 @@
+{
+  "db": "SQLite",
+  "11a39ecf05362437a5288584c989de813b0b10824aa55b624994000defaaf1a7": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_one",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "team_two",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "start_date: _",
+          "ordinal": 3,
+          "type_info": "Datetime"
+        },
+        {
+          "name": "winner_points",
+          "ordinal": 4,
+          "type_info": "Int64"
+        },
+        {
+          "name": "guess_points",
+          "ordinal": 5,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 6
+      }
+    },
+    "query": "\n            INSERT INTO match\n                (team_one_id, team_two_id, start_date, winner_points, guess_points, room_id)\n            VALUES\n                (?, ?, ?, ?, ?, ?);\n\n            SELECT\n                match.id,\n                team1.name AS team_one,\n                team2.name AS team_two,\n                match.start_date AS \"start_date: _\",\n                match.winner_points,\n                match.guess_points\n            FROM\n                match\n                JOIN team as team1 on match.team_one_id = team1.id\n                JOIN team as team2 on match.team_two_id = team2.id\n            WHERE\n                match.rowid = last_insert_rowid();\n            "
+  },
+  "1e279004f86926a38ea23ed74cbfd01dfbdfe26e5a0bb23d756f74940c6bcdf0": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 3
+      }
+    },
+    "query": "\n            INSERT INTO user \n                (username, email, password)\n            VALUES\n                (?, ?, ?)\n            "
+  },
+  "1eab4a6c5f8e797aa4c07e2b7db14ed45aa6bd8c94a407d8fb5f78512b5996a2": {
+    "describe": {
+      "columns": [
+        {
+          "name": "match_id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_one_score",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_two_score",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 6
+      }
+    },
+    "query": "\n            UPDATE bet SET\n                team_one_score = ?, \n                team_two_score = ?\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n            "
+  },
+  "26a90986a62585919046e3156ba289e58c97f81a1b2ec31f0942407042a3852b": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "description",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "owner_id",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "\n            SELECT\n                room.id,\n                room.name,\n                room.description,\n                room.owner_id\n            FROM\n                room \n                LEFT JOIN room_user ON room.id = room_user.room_id\n            WHERE\n                room_user.user_id = ?\n                OR room.owner_id = ?\n            "
+  },
+  "4904a7779862e7c03ea3b70dcf646ddec5a048c5a45050bd6a86858f239f2534": {
+    "describe": {
+      "columns": [
+        {
+          "name": "match_id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_one_score",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_two_score",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 4
+      }
+    },
+    "query": "\n            INSERT INTO bet\n                (match_id, user_id, team_one_score, team_two_score)\n            VALUES\n                (?, ?, ?, ?);\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                rowid = last_insert_rowid();\n            "
+  },
+  "4e572aa85a8aa08dda304afad85d57a7f1a2a096b4ba956622ad850b8054d16b": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "\n            INSERT INTO room_user\n                (room_id, user_id)\n            VALUES\n                (?, ?)\n            "
+  },
+  "53e93cea52ea9c16a0566846bebbdd4c803e765d653c5cea90bf1f25f9e52951": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "description",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "owner_id",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "parameters": {
+        "Right": 3
+      }
+    },
+    "query": "\n            INSERT INTO room\n                (name, description, owner_id)\n            VALUES\n                (?, ?, ?);\n\n            SELECT\n                id,\n                name,\n                description,\n                owner_id\n            FROM\n                room\n            WHERE\n                rowid = last_insert_rowid()\n            "
+  },
+  "582c921a1fc76c3bcd3dfabebc720ad1ce200cf2a116ab1fce53d8d2421c47bf": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 3
+      }
+    },
+    "query": "\n            DELETE FROM \n                match\n            WHERE\n                id = ?\n                AND EXISTS ( \n                    SELECT\n                        *\n                    FROM \n                        match\n                        JOIN room ON match.room_id = room.id\n                    WHERE\n                        room.owner_id = ?\n                        AND match.id = ?\n                    );\n            "
+  },
+  "58e310bb88841e532b0b3f854c65d1c65a2425dbff5df4b8bc4e761fac0ea57c": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Right": 3
+      }
+    },
+    "query": "\n            SELECT\n                match.id\n            FROM\n                match\n                JOIN room on match.room_id = room.id\n                LEFT JOIN room_user on room.id = room_user.room_id\n            WHERE\n                match.id = ?\n                AND (\n                    room.owner_id = ?\n                    OR room_user.user_id = ?\n                );\n            "
+  },
+  "87d0494b293707f074766d3223475d1a36063f727163bb0085c4ec805810db9e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 0
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                name\n            FROM\n                team\n            ORDER BY\n                2\n            "
+  },
+  "9d63aa1bbf03fe604baf28a4061d2361e0d290ee7c3639ecd478e7498889f383": {
+    "describe": {
+      "columns": [
+        {
+          "name": "email_exists",
+          "ordinal": 0,
+          "type_info": "Int"
+        },
+        {
+          "name": "username_exists",
+          "ordinal": 1,
+          "type_info": "Int"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "  \n            SELECT \n                CASE WHEN EXISTS (\n                    SELECT \n                        * \n                    FROM \n                        user \n                    WHERE \n                        email = ?\n                ) THEN 1 ELSE 0 end email_exists, \n                CASE WHEN EXISTS (\n                    SELECT \n                        * \n                    FROM \n                        user \n                    WHERE \n                        username = ?\n                ) THEN 1 ELSE 0 end username_exists\n            "
+  },
+  "b116c15ad5e45329e97890d62ef3585dc8a7b86ddc9f14bc4a036fdff5a426ec": {
+    "describe": {
+      "columns": [
+        {
+          "name": "match_id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_one_score",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_two_score",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n            "
+  },
+  "b98e8182747151b7e104969a62d9b15e2d294d3db1db7ac4875776545b50eb74": {
+    "describe": {
+      "columns": [
+        {
+          "name": "present",
+          "ordinal": 0,
+          "type_info": "Int"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Right": 3
+      }
+    },
+    "query": "\n            SELECT CASE \n                WHEN EXISTS (SELECT *\n                            FROM\n                                room \n                                JOIN room_user ON room.id = room_user.room_id\n                            WHERE\n                                room.id = ?\n                                AND (room_user.user_id = ?\n                                    OR room.owner_id = ?))\n                    THEN 1\n                ELSE 0\n            END present\n            "
+  },
+  "bea85bc3ad9708cac6c39692eabedf09fdc381fdcdd7746f983db7a6b7719258": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "username",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "email",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "password",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                username,\n                email,\n                password\n            FROM\n                user\n            WHERE\n                LOWER(email) = ?\n            "
+  },
+  "e27e41064e130386b03914edc72a59a5214af8f97989abdf7788ce97215b5e17": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "description",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "owner_id",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                name,\n                description,\n                owner_id\n            FROM\n                room\n            WHERE\n                id = ?\n            "
+  },
+  "f31eb7dddd4ae3f6a35ac7f859ca1d299df2a22138800797780e0ae208b78d00": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_one",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "team_two",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "start_date: _",
+          "ordinal": 3,
+          "type_info": "Datetime"
+        },
+        {
+          "name": "winner_points",
+          "ordinal": 4,
+          "type_info": "Int64"
+        },
+        {
+          "name": "guess_points",
+          "ordinal": 5,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 7
+      }
+    },
+    "query": "\n            UPDATE match SET \n                team_one_id = ?, \n                team_two_id = ?, \n                start_date = ?, \n                winner_points = ?, \n                guess_points = ?\n            WHERE   \n                id = ?;\n\n            SELECT\n                match.id,\n                team1.name AS team_one,\n                team2.name AS team_two,\n                match.start_date AS \"start_date: _\",\n                match.winner_points,\n                match.guess_points\n            FROM\n                match\n                JOIN team as team1 on match.team_one_id = team1.id\n                JOIN team as team2 on match.team_two_id = team2.id\n            WHERE\n                match.id = ?;\n            "
+  },
+  "f487d91fae3b28a57f7822220bb0a6452f5b7399768297f6902191b2318b7070": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "\n            DELETE FROM room_user WHERE room_id = ?;\n            DELETE FROM room WHERE  id = ?\n            "
+  }
+}
