@@ -3,7 +3,7 @@ use rocket::serde::json::Json;
 use crate::{
     models::{
         auth::{MatchUser, RoomUser},
-        match_error::MatchError,
+        error::{Errors, ServerError},
         r#match::{
             CloseMatchRequestDto, CreateMatchRequest, CreateMatchRequestDto, FullMatchDto,
             MatchDto, MatchResultDto,
@@ -18,7 +18,7 @@ pub async fn get(
     room_id: String,
     factory: &Factory,
     user: &RoomUser,
-) -> Result<Json<Vec<FullMatchDto>>, MatchError> {
+) -> ServerError<Json<Vec<FullMatchDto>>> {
     let room_id = decode_id(room_id)?;
 
     let matches = factory
@@ -37,14 +37,14 @@ pub async fn get_by_id(
     match_id: String,
     factory: &Factory,
     user: &MatchUser,
-) -> Result<Json<FullMatchDto>, MatchError> {
+) -> ServerError<Json<FullMatchDto>> {
     let match_id = decode_id(match_id)?;
 
     let r#match = factory
         .get::<MatchRepository>()
         .get_by_id(match_id, user.id)
         .await?
-        .ok_or(MatchError::NotFound(()))?;
+        .ok_or(Errors::NotFound("Match not found"))?;
 
     Ok(Json(r#match.into()))
 }
@@ -55,7 +55,7 @@ pub async fn create_or_update(
     req: Json<CreateMatchRequestDto>,
     factory: &Factory,
     _user: &RoomUser,
-) -> Result<Json<MatchDto>, MatchError> {
+) -> ServerError<Json<MatchDto>> {
     let req: CreateMatchRequest = req.into_inner().try_into()?;
 
     let r#match = if req.id.is_some() {
@@ -76,11 +76,7 @@ pub async fn create_or_update(
 }
 
 #[delete("/<match_id>")]
-pub async fn delete(
-    match_id: String,
-    factory: &Factory,
-    user: &MatchUser,
-) -> Result<(), MatchError> {
+pub async fn delete(match_id: String, factory: &Factory, user: &MatchUser) -> ServerError<()> {
     let match_id = decode_id(match_id)?;
 
     factory
@@ -97,7 +93,7 @@ pub async fn close(
     req: Json<CloseMatchRequestDto>,
     factory: &Factory,
     _user: &MatchUser,
-) -> Result<Json<MatchResultDto>, MatchError> {
+) -> ServerError<Json<MatchResultDto>> {
     let match_id = decode_id(match_id)?;
 
     let result = factory

@@ -1,7 +1,7 @@
 use crate::{
     models::{
         auth::{LoginRequest, RefreshTokenRequest, RegisterRequest, Token},
-        auth_error::AuthError,
+        error::{Errors, ServerError},
     },
     repositories::{auth_repository::AuthRepository, factory::Factory},
     utils::{hasher::encode_id, jwt, password},
@@ -9,7 +9,7 @@ use crate::{
 use rocket::serde::json::Json;
 
 #[post("/register", data = "<req>")]
-pub async fn register(req: Json<RegisterRequest>, factory: &Factory) -> Result<(), AuthError> {
+pub async fn register(req: Json<RegisterRequest>, factory: &Factory) -> ServerError<()> {
     factory
         .get::<AuthRepository>()
         .register(req.into_inner())
@@ -19,17 +19,17 @@ pub async fn register(req: Json<RegisterRequest>, factory: &Factory) -> Result<(
 }
 
 #[post("/login", data = "<req>")]
-pub async fn login(req: Json<LoginRequest>, factory: &Factory) -> Result<Json<Token>, AuthError> {
+pub async fn login(req: Json<LoginRequest>, factory: &Factory) -> ServerError<Json<Token>> {
     let user = factory
         .get::<AuthRepository>()
         .get_user_by_email(&req.email)
         .await?
-        .ok_or(AuthError::InvalidCredentials(()))?;
+        .ok_or(Errors::InvalidCredentials("Wrong email and/or password"))?;
 
     let login_result = password::verify(&user.password, &req.password)?;
 
     if !login_result {
-        return Err(AuthError::InvalidCredentials(()));
+        return Err(Errors::InvalidCredentials("Wrong email and/or password"));
     }
 
     let response = Token {
@@ -55,7 +55,7 @@ pub async fn login(req: Json<LoginRequest>, factory: &Factory) -> Result<Json<To
 }
 
 #[post("/refresh-token", data = "<req>")]
-pub async fn refresh_token(req: Json<RefreshTokenRequest>) -> Result<Json<Token>, AuthError> {
+pub async fn refresh_token(req: Json<RefreshTokenRequest>) -> ServerError<Json<Token>> {
     let req = req.into_inner();
 
     let token_info = jwt::verify(&req.refresh_token)?;

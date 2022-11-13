@@ -1,12 +1,12 @@
 use rocket::serde::json::Json;
 
 use crate::{
-    models::{team::TeamDto, team_error::TeamError},
+    models::{error::ServerError, team::TeamDto},
     repositories::{factory::Factory, team_repository::TeamRepository},
 };
 
 #[get("/")]
-pub async fn get(factory: &Factory) -> Result<Json<Vec<TeamDto>>, TeamError> {
+pub async fn get(factory: &Factory) -> ServerError<Json<Vec<TeamDto>>> {
     let teams = factory
         .get::<TeamRepository>()
         .get()

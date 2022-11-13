@@ -1,8 +1,8 @@
 use sqlx::{Pool, Sqlite};
 
 use crate::models::{
+    error::{Error, Errors},
     room::{CreateRoomRequest, Room},
-    room_error::RoomError,
 };
 
 use super::factory::RepositoryFactory;
@@ -18,7 +18,7 @@ impl RepositoryFactory for RoomRepository {
 }
 
 impl RoomRepository {
-    pub async fn get_rooms(&self, user_id: i64) -> Result<Vec<Room>, Box<dyn std::error::Error>> {
+    pub async fn get_rooms(&self, user_id: i64) -> Error<Vec<Room>> {
         let rooms = sqlx::query_as!(
             Room,
             "
@@ -46,7 +46,7 @@ impl RoomRepository {
         Ok(rooms)
     }
 
-    pub async fn get_room(&self, id: i64) -> Result<Option<Room>, Box<dyn std::error::Error>> {
+    pub async fn get_room(&self, id: i64) -> Error<Option<Room>> {
         let room = sqlx::query_as!(
             Room,
             "
@@ -69,11 +69,7 @@ impl RoomRepository {
         Ok(room)
     }
 
-    pub async fn create(
-        &self,
-        room: CreateRoomRequest,
-        user_id: i64,
-    ) -> Result<Room, Box<dyn std::error::Error>> {
+    pub async fn create(&self, room: CreateRoomRequest, user_id: i64) -> Error<Room> {
         let inserted_room = sqlx::query_as!(
             Room,
             "
@@ -102,7 +98,7 @@ impl RoomRepository {
         Ok(inserted_room)
     }
 
-    pub async fn join(&self, id: i64, user_id: i64) -> Result<Room, Box<dyn std::error::Error>> {
+    pub async fn join(&self, id: i64, user_id: i64) -> Error<Room> {
         let present = sqlx::query!(
             "
             SELECT CASE 
@@ -127,13 +123,15 @@ impl RoomRepository {
         .present;
 
         if present == 1 {
-            return Err(RoomError::AlreadyJoined(()))?;
+            return Err(Box::new(Errors::AlreadyJoined(
+                "User has already joined this room.",
+            )));
         }
 
         let room = self
             .get_room(id)
             .await?
-            .ok_or(RoomError::RoomNotFound(()))?;
+            .ok_or(Errors::NotFound("Room not found."))?;
 
         sqlx::query!(
             "
@@ -151,14 +149,16 @@ impl RoomRepository {
         Ok(room)
     }
 
-    pub async fn delete(&self, id: i64, user_id: i64) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn delete(&self, id: i64, user_id: i64) -> Error<()> {
         let room = self
             .get_room(id)
             .await?
-            .ok_or(RoomError::RoomNotFound(()))?;
+            .ok_or(Errors::NotFound("Room not found"))?;
 
         if room.owner_id != user_id {
-            return Err(RoomError::NotAllowed(()))?;
+            return Err(Box::new(Errors::NotAllowed(
+                "You must be the owner to delete this room",
+            )));
         }
 
         let now = chrono::Local::now();

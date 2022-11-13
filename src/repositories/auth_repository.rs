@@ -1,5 +1,9 @@
 use crate::{
-    models::{auth::RegisterRequest, auth_error::AuthError, user::User},
+    models::{
+        auth::RegisterRequest,
+        error::{Error, Errors},
+        user::User,
+    },
     utils::password,
 };
 use sqlx::{Pool, Sqlite};
@@ -17,7 +21,7 @@ impl RepositoryFactory for AuthRepository {
 }
 
 impl AuthRepository {
-    pub async fn register(&self, req: RegisterRequest) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn register(&self, req: RegisterRequest) -> Error<()> {
         let record = sqlx::query!(
             "  
             SELECT 
@@ -45,11 +49,11 @@ impl AuthRepository {
         .await?;
 
         if record.email_exists == 1 {
-            return Err(Box::new(AuthError::EmailTaken(())));
+            return Err(Box::new(Errors::EmailTaken("Email already taken")));
         }
 
         if record.username_exists == 1 {
-            return Err(Box::new(AuthError::UsernameTaken(())));
+            return Err(Box::new(Errors::UsernameTaken("Username already taken")));
         }
 
         let hashed_password = password::hash_password(&req.password)?;
@@ -71,10 +75,7 @@ impl AuthRepository {
         Ok(())
     }
 
-    pub async fn get_user_by_email(
-        &self,
-        email: &str,
-    ) -> Result<Option<User>, Box<dyn std::error::Error>> {
+    pub async fn get_user_by_email(&self, email: &str) -> Error<Option<User>> {
         let email = email.to_ascii_lowercase();
         let user = sqlx::query_as!(
             User,

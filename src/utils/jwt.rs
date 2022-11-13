@@ -18,7 +18,7 @@ pub struct Claims {
 
 impl Claims {
     fn new(grant_type: String, exp: i64, sub: String, email: String, username: String) -> Claims {
-        let now = Local::now().timestamp();
+        let now = Local::now().timestamp_millis();
         Claims {
             grant_type,
             email,

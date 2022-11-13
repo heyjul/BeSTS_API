@@ -4,7 +4,7 @@ use crate::{
     models::{
         auth::MatchUser,
         bet::{BetDto, CreateBetRequest, CreateBetRequestDto},
-        bet_error::BetError,
+        error::ServerError,
     },
     repositories::{bet_repository::BetRepository, factory::Factory},
     utils::hasher::decode_id,
@@ -16,7 +16,7 @@ pub async fn create_or_update(
     req: Json<CreateBetRequestDto>,
     factory: &Factory,
     user: &MatchUser,
-) -> Result<Json<BetDto>, BetError> {
+) -> ServerError<Json<BetDto>> {
     let req: CreateBetRequest = req.into_inner().into();
     let match_id = decode_id(match_id)?;
 
