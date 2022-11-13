@@ -12,19 +12,19 @@ pub struct Claims {
     pub email: String,
     pub username: String,
     pub sub: String,
-    pub exp: usize,
-    pub iat: usize,
+    pub exp: i64,
+    pub iat: i64,
 }
 
 impl Claims {
-    fn new(grant_type: String, exp: u32, sub: String, email: String, username: String) -> Claims {
-        let now = Local::now().timestamp() as usize;
+    fn new(grant_type: String, exp: i64, sub: String, email: String, username: String) -> Claims {
+        let now = Local::now().timestamp();
         Claims {
             grant_type,
             email,
             username,
             sub,
-            exp: now + exp as usize,
+            exp: now + exp,
             iat: now,
         }
     }
@@ -32,7 +32,7 @@ impl Claims {
 
 pub fn get_token(
     grant_type: String,
-    exp: u32,
+    exp: i64,
     sub: String,
     email: String,
     username: String,

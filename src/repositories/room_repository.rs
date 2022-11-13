@@ -31,8 +31,11 @@ impl RoomRepository {
                 room 
                 LEFT JOIN room_user ON room.id = room_user.room_id
             WHERE
-                room_user.user_id = ?
-                OR room.owner_id = ?
+                room.deleted_date IS NULL
+                AND (
+                    room_user.user_id = ?
+                    OR room.owner_id = ?
+                )
             ",
             user_id,
             user_id
@@ -56,6 +59,7 @@ impl RoomRepository {
                 room
             WHERE
                 id = ?
+                AND deleted_date IS NULL
             ",
             id
         )
@@ -157,12 +161,19 @@ impl RoomRepository {
             return Err(RoomError::NotAllowed(()))?;
         }
 
+        let now = chrono::Local::now();
         sqlx::query!(
             "
-            DELETE FROM room_user WHERE room_id = ?;
-            DELETE FROM room WHERE  id = ?
+            UPDATE
+                room
+            SET
+                deleted_date = ?,
+                deleted_by = ?
+            WHERE
+                id = ?;
             ",
-            id,
+            now,
+            user_id,
             id
         )
         .execute(&self.db_pool)

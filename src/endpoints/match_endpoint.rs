@@ -4,7 +4,10 @@ use crate::{
     models::{
         auth::{MatchUser, RoomUser},
         match_error::MatchError,
-        r#match::{CreateMatchRequest, CreateMatchRequestDto, FullMatchDto, MatchDto},
+        r#match::{
+            CloseMatchRequestDto, CreateMatchRequest, CreateMatchRequestDto, FullMatchDto,
+            MatchDto, MatchResultDto,
+        },
     },
     repositories::{factory::Factory, match_repository::MatchRepository},
     utils::hasher::decode_id,
@@ -86,4 +89,21 @@ pub async fn delete(
         .await?;
 
     Ok(())
+}
+
+#[post("/<match_id>/close", data = "<req>")]
+pub async fn close(
+    match_id: String,
+    req: Json<CloseMatchRequestDto>,
+    factory: &Factory,
+    _user: &MatchUser,
+) -> Result<Json<MatchResultDto>, MatchError> {
+    let match_id = decode_id(match_id)?;
+
+    let result = factory
+        .get::<MatchRepository>()
+        .close(match_id, req.into_inner().into())
+        .await?;
+
+    Ok(Json(result.into()))
 }

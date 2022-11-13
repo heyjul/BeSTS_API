@@ -1,6 +1,8 @@
 use sqlx::{Pool, Sqlite};
 
-use crate::models::r#match::{CreateMatchRequest, FullMatch, Match};
+use crate::models::r#match::{
+    CloseMatchRequest, CreateMatchRequest, FullMatch, Match, MatchResult,
+};
 
 use super::factory::RepositoryFactory;
 
@@ -30,12 +32,15 @@ impl MatchRepository {
                 match.winner_points,
                 match.guess_points,
                 bet.team_one_score AS guessed_team_one_score,
-                bet.team_two_score AS guessed_team_two_score
+                bet.team_two_score AS guessed_team_two_score,
+                result.team_one_score AS real_team_one_score,
+                result.team_two_score AS real_team_two_score
             FROM
                 match
                 JOIN team as team1 on match.team_one_id = team1.id
                 JOIN team as team2 on match.team_two_id = team2.id
                 LEFT JOIN bet ON match.id = bet.match_id AND bet.user_id = ?
+                LEFT JOIN result ON match.id = result.match_id
             WHERE
                 room_id = ?
             ORDER BY
@@ -210,21 +215,55 @@ impl MatchRepository {
                 match.winner_points,
                 match.guess_points,
                 bet.team_one_score AS guessed_team_one_score,
-                bet.team_two_score AS guessed_team_two_score
+                bet.team_two_score AS guessed_team_two_score,
+                result.team_one_score AS real_team_one_score,
+                result.team_two_score AS real_team_two_score
             FROM
                 match
                 JOIN team as team1 on match.team_one_id = team1.id
                 JOIN team as team2 on match.team_two_id = team2.id
                 LEFT JOIN bet ON match.id = bet.match_id AND bet.user_id = ?
+                LEFT JOIN result ON match.id = result.match_id
             WHERE
-                match_id = ?
-            ORDER BY
-                match.start_date
+                match.id = ?
             "#,
         )
         .bind(user_id)
         .bind(match_id)
         .fetch_optional(&self.db_pool)
+        .await?;
+
+        Ok(r#match)
+    }
+
+    pub async fn close(
+        &self,
+        match_id: i64,
+        req: CloseMatchRequest,
+    ) -> Result<MatchResult, Box<dyn std::error::Error>> {
+        let r#match = sqlx::query_as!(
+            MatchResult,
+            "
+            INSERT INTO result
+                (match_id, team_one_score, team_two_score)
+            VALUES
+                (?, ?, ?);
+
+            SELECT
+                match_id,
+                team_one_score,
+                team_two_score
+            FROM
+                result
+            WHERE
+                match_id = ?;
+            ",
+            match_id,
+            req.team_one_score,
+            req.team_two_score,
+            match_id,
+        )
+        .fetch_one(&self.db_pool)
         .await?;
 
         Ok(r#match)

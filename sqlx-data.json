@@ -94,42 +94,6 @@
     },
     "query": "\n            UPDATE bet SET\n                team_one_score = ?, \n                team_two_score = ?\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n            "
   },
-  "26a90986a62585919046e3156ba289e58c97f81a1b2ec31f0942407042a3852b": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int64"
-        },
-        {
-          "name": "name",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "description",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "owner_id",
-          "ordinal": 3,
-          "type_info": "Int64"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        true,
-        false
-      ],
-      "parameters": {
-        "Right": 2
-      }
-    },
-    "query": "\n            SELECT\n                room.id,\n                room.name,\n                room.description,\n                room.owner_id\n            FROM\n                room \n                LEFT JOIN room_user ON room.id = room_user.room_id\n            WHERE\n                room_user.user_id = ?\n                OR room.owner_id = ?\n            "
-  },
   "4904a7779862e7c03ea3b70dcf646ddec5a048c5a45050bd6a86858f239f2534": {
     "describe": {
       "columns": [
@@ -175,6 +139,16 @@
       }
     },
     "query": "\n            INSERT INTO room_user\n                (room_id, user_id)\n            VALUES\n                (?, ?)\n            "
+  },
+  "50323764f2bafbdfbb17a8cb87d699bcbb2052a8ce92946d9011dc71667dae56": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 3
+      }
+    },
+    "query": "\n            UPDATE\n                room\n            SET\n                deleted_date = ?,\n                deleted_by = ?\n            WHERE\n                id = ?;\n            "
   },
   "53e93cea52ea9c16a0566846bebbdd4c803e765d653c5cea90bf1f25f9e52951": {
     "describe": {
@@ -378,7 +352,73 @@
     },
     "query": "\n            SELECT\n                id,\n                username,\n                email,\n                password\n            FROM\n                user\n            WHERE\n                LOWER(email) = ?\n            "
   },
-  "e27e41064e130386b03914edc72a59a5214af8f97989abdf7788ce97215b5e17": {
+  "c68e715db9535edc195f7309737b238f7c7e3d013f6b8b05316913ba3057cfdb": {
+    "describe": {
+      "columns": [
+        {
+          "name": "match_id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_one_score",
+          "ordinal": 1,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_two_score",
+          "ordinal": 2,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 4
+      }
+    },
+    "query": "\n            INSERT INTO result\n                (match_id, team_one_score, team_two_score)\n            VALUES\n                (?, ?, ?);\n\n            SELECT\n                match_id,\n                team_one_score,\n                team_two_score\n            FROM\n                result\n            WHERE\n                match_id = ?;\n            "
+  },
+  "cf6f6fa01f9c2611cdcc21fac351cbeedc6ab7cbe4ca9cdfdd759d97eddfc725": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "description",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "owner_id",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "\n            SELECT\n                room.id,\n                room.name,\n                room.description,\n                room.owner_id\n            FROM\n                room \n                LEFT JOIN room_user ON room.id = room_user.room_id\n            WHERE\n                room.deleted_date IS NULL\n                AND (\n                    room_user.user_id = ?\n                    OR room.owner_id = ?\n                )\n            "
+  },
+  "f12931a9bfa739257b25c361c141779d35366b82e43cd36273a2e1255e14336b": {
     "describe": {
       "columns": [
         {
@@ -412,7 +452,7 @@
         "Right": 1
       }
     },
-    "query": "\n            SELECT\n                id,\n                name,\n                description,\n                owner_id\n            FROM\n                room\n            WHERE\n                id = ?\n            "
+    "query": "\n            SELECT\n                id,\n                name,\n                description,\n                owner_id\n            FROM\n                room\n            WHERE\n                id = ?\n                AND deleted_date IS NULL\n            "
   },
   "f31eb7dddd4ae3f6a35ac7f859ca1d299df2a22138800797780e0ae208b78d00": {
     "describe": {
@@ -461,15 +501,5 @@
       }
     },
     "query": "\n            UPDATE match SET \n                team_one_id = ?, \n                team_two_id = ?, \n                start_date = ?, \n                winner_points = ?, \n                guess_points = ?\n            WHERE   \n                id = ?;\n\n            SELECT\n                match.id,\n                team1.name AS team_one,\n                team2.name AS team_two,\n                match.start_date AS \"start_date: _\",\n                match.winner_points,\n                match.guess_points\n            FROM\n                match\n                JOIN team as team1 on match.team_one_id = team1.id\n                JOIN team as team2 on match.team_two_id = team2.id\n            WHERE\n                match.id = ?;\n            "
-  },
-  "f487d91fae3b28a57f7822220bb0a6452f5b7399768297f6902191b2318b7070": {
-    "describe": {
-      "columns": [],
-      "nullable": [],
-      "parameters": {
-        "Right": 2
-      }
-    },
-    "query": "\n            DELETE FROM room_user WHERE room_id = ?;\n            DELETE FROM room WHERE  id = ?\n            "
   }
 }

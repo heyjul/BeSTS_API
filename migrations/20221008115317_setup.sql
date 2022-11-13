@@ -12,7 +12,10 @@ CREATE TABLE room (
    	name TEXT NOT NULL,
 	description TEXT,
 	owner_id INTEGER NOT NULL,
-	FOREIGN KEY (owner_id) REFERENCES user(id)
+	deleted_date DATETIME NULL,
+	deleted_by DATETIME NULL,
+	FOREIGN KEY (owner_id) REFERENCES user(id),
+	FOREIGN KEY (deleted_by) REFERENCES user(id)
 );
 
 CREATE TABLE room_user (
