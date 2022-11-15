@@ -28,6 +28,11 @@ async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
     }
 }
 
+#[get("/")]
+fn hello() -> &'static str {
+    "Nginx works"
+}
+
 #[launch]
 fn rocket() -> _ {
     dotenvy::dotenv().ok();
@@ -36,6 +41,7 @@ fn rocket() -> _ {
         .attach(CORS)
         .attach(SoccerDb::init())
         .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
+        .mount("/", routes![hello])
         .mount(
             "/",
             routes![
