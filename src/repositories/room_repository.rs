@@ -22,7 +22,7 @@ impl RoomRepository {
         let rooms = sqlx::query_as!(
             Room,
             "
-            SELECT
+            SELECT DISTINCT
                 room.id,
                 room.name,
                 room.description,

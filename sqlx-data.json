@@ -214,6 +214,42 @@
     },
     "query": "\n            SELECT\n                match.id\n            FROM\n                match\n                JOIN room on match.room_id = room.id\n                LEFT JOIN room_user on room.id = room_user.room_id\n            WHERE\n                match.id = ?\n                AND (\n                    room.owner_id = ?\n                    OR room_user.user_id = ?\n                );\n            "
   },
+  "7da169952c405021bb24d2bbf3d1eb893c7cfec2e210b10f4f4e1cf9013fe1ea": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "description",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "owner_id",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "parameters": {
+        "Right": 2
+      }
+    },
+    "query": "\n            SELECT DISTINCT\n                room.id,\n                room.name,\n                room.description,\n                room.owner_id\n            FROM\n                room \n                LEFT JOIN room_user ON room.id = room_user.room_id\n            WHERE\n                room.deleted_date IS NULL\n                AND (\n                    room_user.user_id = ?\n                    OR room.owner_id = ?\n                )\n            "
+  },
   "87d0494b293707f074766d3223475d1a36063f727163bb0085c4ec805810db9e": {
     "describe": {
       "columns": [
@@ -381,42 +417,6 @@
       }
     },
     "query": "\n            INSERT INTO result\n                (match_id, team_one_score, team_two_score)\n            VALUES\n                (?, ?, ?);\n\n            SELECT\n                match_id,\n                team_one_score,\n                team_two_score\n            FROM\n                result\n            WHERE\n                match_id = ?;\n            "
-  },
-  "cf6f6fa01f9c2611cdcc21fac351cbeedc6ab7cbe4ca9cdfdd759d97eddfc725": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int64"
-        },
-        {
-          "name": "name",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "description",
-          "ordinal": 2,
-          "type_info": "Text"
-        },
-        {
-          "name": "owner_id",
-          "ordinal": 3,
-          "type_info": "Int64"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        true,
-        false
-      ],
-      "parameters": {
-        "Right": 2
-      }
-    },
-    "query": "\n            SELECT\n                room.id,\n                room.name,\n                room.description,\n                room.owner_id\n            FROM\n                room \n                LEFT JOIN room_user ON room.id = room_user.room_id\n            WHERE\n                room.deleted_date IS NULL\n                AND (\n                    room_user.user_id = ?\n                    OR room.owner_id = ?\n                )\n            "
   },
   "f12931a9bfa739257b25c361c141779d35366b82e43cd36273a2e1255e14336b": {
     "describe": {
