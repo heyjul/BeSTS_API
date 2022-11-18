@@ -1,3 +1,5 @@
+use std::cmp::Reverse;
+
 use rocket::serde::json::Json;
 
 use crate::{
@@ -5,6 +7,7 @@ use crate::{
         auth::{RoomUser, User},
         error::{Errors, ServerError},
         room::{CreateRoomRequest, RoomDto},
+        score::ScoreDto,
     },
     repositories::{factory::Factory, room_repository::RoomRepository},
     utils::hasher::decode_id,
@@ -76,4 +79,25 @@ pub async fn delete(id: String, factory: &Factory, user: &User) -> ServerError<(
     factory.get::<RoomRepository>().delete(id, user.id).await?;
 
     Ok(())
+}
+
+#[get("/<room_id>/scores")]
+pub async fn get_scores(
+    room_id: String,
+    factory: &Factory,
+    _user: &RoomUser,
+) -> ServerError<Json<Vec<ScoreDto>>> {
+    let id = decode_id(room_id)?;
+
+    let mut scores: Vec<_> = factory
+        .get::<RoomRepository>()
+        .get_scores(id)
+        .await?
+        .into_iter()
+        .map(ScoreDto::from)
+        .collect();
+
+    scores.sort_unstable_by_key(|score| (Reverse(score.score), score.username.to_owned()));
+
+    Ok(Json(scores))
 }

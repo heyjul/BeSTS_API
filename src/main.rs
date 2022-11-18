@@ -59,6 +59,7 @@ fn rocket() -> _ {
                 room_endpoint::get_by_id,
                 room_endpoint::join,
                 room_endpoint::delete,
+                room_endpoint::get_scores,
             ],
         )
         .mount("/teams", routes![team_endpoints::get,])

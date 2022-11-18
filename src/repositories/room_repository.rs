@@ -3,6 +3,7 @@ use sqlx::{Pool, Sqlite};
 use crate::models::{
     error::{Error, Errors},
     room::{CreateRoomRequest, Room},
+    score::Score,
 };
 
 use super::factory::RepositoryFactory;
@@ -180,5 +181,25 @@ impl RoomRepository {
         .await?;
 
         Ok(())
+    }
+
+    pub async fn get_scores(&self, id: i64) -> Error<Vec<Score>> {
+        let scores = sqlx::query_as::<_, Score>(
+            "
+            SELECT
+                user.username,
+                score.score
+            FROM
+                score
+                JOIN user ON score.user_id = user.id
+            WHERE
+                score.room_id = ?
+            ",
+        )
+        .bind(id)
+        .fetch_all(&self.db_pool)
+        .await?;
+
+        Ok(scores)
     }
 }
