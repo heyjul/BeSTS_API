@@ -1,4 +1,5 @@
 -- Add migration script here
+-- Add migration script here
 DROP VIEW score;
 CREATE VIEW score (
     user_id,
@@ -14,11 +15,14 @@ SELECT
             WHEN bet.team_one_score = result.team_one_score 
                     AND bet.team_two_score = result.team_two_score
                 THEN match.guess_points
-            WHEN (bet.team_one_score >= bet.team_two_score
-                    AND result.team_one_score >= result.team_two_score)
+            WHEN (bet.team_one_score > bet.team_two_score
+                    AND result.team_one_score > result.team_two_score)
                 OR
                 (bet.team_one_score < bet.team_two_score
                     AND result.team_one_score < result.team_two_score)
+                OR
+                (bet.team_one_score = bet.team_two_score
+                    AND result.team_one_score = result.team_two_score)
                 THEN match.winner_points
             ELSE 0
         END
