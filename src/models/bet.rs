@@ -49,3 +49,33 @@ impl From<CreateBetRequestDto> for CreateBetRequest {
         }
     }
 }
+
+pub struct FullBet {
+    pub username: String,
+    pub team_one: String,
+    pub team_two: String,
+    pub team_one_score: i64,
+    pub team_two_score: i64,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FullBetDto {
+    pub username: String,
+    pub team_one: String,
+    pub team_two: String,
+    pub team_one_score: i64,
+    pub team_two_score: i64,
+}
+
+impl From<FullBet> for FullBetDto {
+    fn from(value: FullBet) -> Self {
+        Self {
+            username: value.username,
+            team_one: value.team_one,
+            team_two: value.team_two,
+            team_one_score: value.team_one_score,
+            team_two_score: value.team_two_score,
+        }
+    }
+}

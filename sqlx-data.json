@@ -501,5 +501,47 @@
       }
     },
     "query": "\n            UPDATE match SET \n                team_one_id = ?, \n                team_two_id = ?, \n                start_date = ?, \n                winner_points = ?, \n                guess_points = ?\n            WHERE   \n                id = ?;\n\n            SELECT\n                match.id,\n                team1.name AS team_one,\n                team2.name AS team_two,\n                match.start_date AS \"start_date: _\",\n                match.winner_points,\n                match.guess_points\n            FROM\n                match\n                JOIN team as team1 on match.team_one_id = team1.id\n                JOIN team as team2 on match.team_two_id = team2.id\n            WHERE\n                match.id = ?;\n            "
+  },
+  "fd42fc45c8f5139bf8789f800f71fe5c3645ad1ae8b81a2cbaf91dcee3134f0f": {
+    "describe": {
+      "columns": [
+        {
+          "name": "username",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "team_one",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "team_two",
+          "ordinal": 2,
+          "type_info": "Text"
+        },
+        {
+          "name": "team_one_score",
+          "ordinal": 3,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_two_score",
+          "ordinal": 4,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "\n            SELECT\n                user.username AS username,\n                t1.name AS team_one,\n                t2.name AS team_two,\n                bet.team_one_score AS team_one_score,\n                bet.team_two_score AS team_two_score\n            FROM\n                bet\n                JOIN user ON bet.user_id = user.id \n                JOIN match ON bet.match_id = match.id\n                JOIN team t1 ON match.team_one_id = t1.id\n                JOIN team t2 ON match.team_two_id = t2.id\n            WHERE\n                bet.match_id = ?;\n            "
   }
 }

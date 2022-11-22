@@ -3,7 +3,7 @@ use rocket::serde::json::Json;
 use crate::{
     models::{
         auth::MatchUser,
-        bet::{BetDto, CreateBetRequest, CreateBetRequestDto},
+        bet::{BetDto, CreateBetRequest, CreateBetRequestDto, FullBetDto},
         error::ServerError,
     },
     repositories::{bet_repository::BetRepository, factory::Factory},
@@ -28,4 +28,23 @@ pub async fn create_or_update(
     };
 
     Ok(Json(bet.into()))
+}
+
+#[get("/<match_id>")]
+pub async fn get_by_match(
+    match_id: String,
+    factory: &Factory,
+    _user: &MatchUser,
+) -> ServerError<Json<Vec<FullBetDto>>> {
+    let match_id = decode_id(match_id)?;
+
+    let bets = factory
+        .get::<BetRepository>()
+        .get_by_match(match_id)
+        .await?
+        .into_iter()
+        .map(FullBetDto::from)
+        .collect();
+
+    Ok(Json(bets))
 }

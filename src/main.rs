@@ -73,7 +73,10 @@ fn rocket() -> _ {
                 match_endpoint::close,
             ],
         )
-        .mount("/bets", routes![bet_endpoint::create_or_update])
+        .mount(
+            "/bets",
+            routes![bet_endpoint::create_or_update, bet_endpoint::get_by_match],
+        )
 }
 
 /// Catches all OPTION requests in order to get the CORS related Fairing triggered.

@@ -2,7 +2,7 @@ use std::error::Error;
 
 use sqlx::{Pool, Sqlite};
 
-use crate::models::bet::{Bet, CreateBetRequest};
+use crate::models::bet::{Bet, CreateBetRequest, FullBet};
 
 use super::factory::RepositoryFactory;
 
@@ -118,5 +118,32 @@ impl BetRepository {
         .await?;
 
         Ok(bet)
+    }
+
+    pub async fn get_by_match(&self, match_id: i64) -> Result<Vec<FullBet>, Box<dyn Error>> {
+        let bets = sqlx::query_as!(
+            FullBet,
+            "
+            SELECT
+                user.username AS username,
+                t1.name AS team_one,
+                t2.name AS team_two,
+                bet.team_one_score AS team_one_score,
+                bet.team_two_score AS team_two_score
+            FROM
+                bet
+                JOIN user ON bet.user_id = user.id 
+                JOIN match ON bet.match_id = match.id
+                JOIN team t1 ON match.team_one_id = t1.id
+                JOIN team t2 ON match.team_two_id = t2.id
+            WHERE
+                bet.match_id = ?;
+            ",
+            match_id,
+        )
+        .fetch_all(&self.db_pool)
+        .await?;
+
+        Ok(bets)
     }
 }
