@@ -178,7 +178,31 @@
     },
     "query": "\n            SELECT DISTINCT\n                room.id,\n                room.name,\n                room.description,\n                room.owner_id\n            FROM\n                room \n                LEFT JOIN room_user ON room.id = room_user.room_id\n            WHERE\n                room.deleted_date IS NULL\n                AND (\n                    room_user.user_id = ?\n                    OR room.owner_id = ?\n                )\n            "
   },
-  "8743f975f1f89bff7b0f46a334edf76a4301709229ba0cdf4291b4052666afb4": {
+  "87d0494b293707f074766d3223475d1a36063f727163bb0085c4ec805810db9e": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "name",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 0
+      }
+    },
+    "query": "\n            SELECT\n                id,\n                name\n            FROM\n                team\n            ORDER BY\n                2\n            "
+  },
+  "886d5daa2790596a41fdd725f96760e4b74e9bd8cb00c827de6af784722c6000": {
     "describe": {
       "columns": [
         {
@@ -209,34 +233,10 @@
         false
       ],
       "parameters": {
-        "Right": 4
+        "Right": 6
       }
     },
-    "query": "\n            INSERT INTO bet\n                (match_id, user_id, team_one_score, team_two_score)\n            VALUES\n                ((SELECT id FROM match where start_date < DATE() and id = ?), ?, ?, ?);\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                rowid = last_insert_rowid();\n            "
-  },
-  "87d0494b293707f074766d3223475d1a36063f727163bb0085c4ec805810db9e": {
-    "describe": {
-      "columns": [
-        {
-          "name": "id",
-          "ordinal": 0,
-          "type_info": "Int64"
-        },
-        {
-          "name": "name",
-          "ordinal": 1,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false
-      ],
-      "parameters": {
-        "Right": 0
-      }
-    },
-    "query": "\n            SELECT\n                id,\n                name\n            FROM\n                team\n            ORDER BY\n                2\n            "
+    "query": "\n            UPDATE bet SET\n                team_one_score = ?, \n                team_two_score = ?\n            WHERE\n                user_id = ?\n                AND match_id = (SELECT id FROM match WHERE start_date > DATETIME() AND id = ?);\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n            "
   },
   "9d63aa1bbf03fe604baf28a4061d2361e0d290ee7c3639ecd478e7498889f383": {
     "describe": {
@@ -298,6 +298,42 @@
     },
     "query": "\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n            "
   },
+  "b7f5daf00118138b1e868312eff172d2491e8dffa180c6ec11fe0c062e97a4b1": {
+    "describe": {
+      "columns": [
+        {
+          "name": "match_id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_one_score",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_two_score",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 4
+      }
+    },
+    "query": "\n            INSERT INTO bet\n                (match_id, user_id, team_one_score, team_two_score)\n            VALUES\n                ((SELECT id FROM match where start_date > DATETIME() and id = ?), ?, ?, ?);\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                rowid = last_insert_rowid();\n            "
+  },
   "b98e8182747151b7e104969a62d9b15e2d294d3db1db7ac4875776545b50eb74": {
     "describe": {
       "columns": [
@@ -351,42 +387,6 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                username,\n                email,\n                password\n            FROM\n                user\n            WHERE\n                LOWER(email) = ?\n            "
-  },
-  "c02061e58eecaa16173ae56b910436fbf8717acb876076a4bc4b7823f1aae760": {
-    "describe": {
-      "columns": [
-        {
-          "name": "match_id",
-          "ordinal": 0,
-          "type_info": "Int64"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 1,
-          "type_info": "Int64"
-        },
-        {
-          "name": "team_one_score",
-          "ordinal": 2,
-          "type_info": "Int64"
-        },
-        {
-          "name": "team_two_score",
-          "ordinal": 3,
-          "type_info": "Int64"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Right": 6
-      }
-    },
-    "query": "\n            UPDATE bet SET\n                team_one_score = ?, \n                team_two_score = ?\n            WHERE\n                user_id = ?\n                AND match_id = (SELECT id FROM match WHERE start_date < DATE() AND id = ?);\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n            "
   },
   "c68e715db9535edc195f7309737b238f7c7e3d013f6b8b05316913ba3057cfdb": {
     "describe": {
