@@ -184,11 +184,15 @@ impl RoomRepository {
     }
 
     pub async fn get_scores(&self, id: i64) -> Error<Vec<Score>> {
+        // Ignore Arthur's points, if only you didn't cheat ...
         let scores = sqlx::query_as::<_, Score>(
             "
             SELECT
                 user.username,
-                score.score
+                CASE 
+                    WHEN user.id = 5 THEN 0
+                    ELSE score.score
+                END score
             FROM
                 score
                 JOIN user ON score.user_id = user.id
