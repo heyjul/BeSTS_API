@@ -29,7 +29,7 @@ impl BetRepository {
             INSERT INTO bet
                 (match_id, user_id, team_one_score, team_two_score)
             VALUES
-                (?, ?, ?, ?);
+                ((SELECT id FROM match where start_date < DATE() and id = ?), ?, ?, ?);
 
             SELECT
                 match_id,
@@ -66,7 +66,7 @@ impl BetRepository {
                 team_two_score = ?
             WHERE
                 user_id = ?
-                AND match_id = ?;
+                AND match_id = (SELECT id FROM match WHERE start_date < DATE() AND id = ?);
 
             SELECT
                 match_id,

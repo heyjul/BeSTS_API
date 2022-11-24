@@ -58,78 +58,6 @@
     },
     "query": "\n            INSERT INTO user \n                (username, email, password)\n            VALUES\n                (?, ?, ?)\n            "
   },
-  "1eab4a6c5f8e797aa4c07e2b7db14ed45aa6bd8c94a407d8fb5f78512b5996a2": {
-    "describe": {
-      "columns": [
-        {
-          "name": "match_id",
-          "ordinal": 0,
-          "type_info": "Int64"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 1,
-          "type_info": "Int64"
-        },
-        {
-          "name": "team_one_score",
-          "ordinal": 2,
-          "type_info": "Int64"
-        },
-        {
-          "name": "team_two_score",
-          "ordinal": 3,
-          "type_info": "Int64"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Right": 6
-      }
-    },
-    "query": "\n            UPDATE bet SET\n                team_one_score = ?, \n                team_two_score = ?\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n            "
-  },
-  "4904a7779862e7c03ea3b70dcf646ddec5a048c5a45050bd6a86858f239f2534": {
-    "describe": {
-      "columns": [
-        {
-          "name": "match_id",
-          "ordinal": 0,
-          "type_info": "Int64"
-        },
-        {
-          "name": "user_id",
-          "ordinal": 1,
-          "type_info": "Int64"
-        },
-        {
-          "name": "team_one_score",
-          "ordinal": 2,
-          "type_info": "Int64"
-        },
-        {
-          "name": "team_two_score",
-          "ordinal": 3,
-          "type_info": "Int64"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Right": 4
-      }
-    },
-    "query": "\n            INSERT INTO bet\n                (match_id, user_id, team_one_score, team_two_score)\n            VALUES\n                (?, ?, ?, ?);\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                rowid = last_insert_rowid();\n            "
-  },
   "4e572aa85a8aa08dda304afad85d57a7f1a2a096b4ba956622ad850b8054d16b": {
     "describe": {
       "columns": [],
@@ -249,6 +177,42 @@
       }
     },
     "query": "\n            SELECT DISTINCT\n                room.id,\n                room.name,\n                room.description,\n                room.owner_id\n            FROM\n                room \n                LEFT JOIN room_user ON room.id = room_user.room_id\n            WHERE\n                room.deleted_date IS NULL\n                AND (\n                    room_user.user_id = ?\n                    OR room.owner_id = ?\n                )\n            "
+  },
+  "8743f975f1f89bff7b0f46a334edf76a4301709229ba0cdf4291b4052666afb4": {
+    "describe": {
+      "columns": [
+        {
+          "name": "match_id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_one_score",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_two_score",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 4
+      }
+    },
+    "query": "\n            INSERT INTO bet\n                (match_id, user_id, team_one_score, team_two_score)\n            VALUES\n                ((SELECT id FROM match where start_date < DATE() and id = ?), ?, ?, ?);\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                rowid = last_insert_rowid();\n            "
   },
   "87d0494b293707f074766d3223475d1a36063f727163bb0085c4ec805810db9e": {
     "describe": {
@@ -387,6 +351,42 @@
       }
     },
     "query": "\n            SELECT\n                id,\n                username,\n                email,\n                password\n            FROM\n                user\n            WHERE\n                LOWER(email) = ?\n            "
+  },
+  "c02061e58eecaa16173ae56b910436fbf8717acb876076a4bc4b7823f1aae760": {
+    "describe": {
+      "columns": [
+        {
+          "name": "match_id",
+          "ordinal": 0,
+          "type_info": "Int64"
+        },
+        {
+          "name": "user_id",
+          "ordinal": 1,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_one_score",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "team_two_score",
+          "ordinal": 3,
+          "type_info": "Int64"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 6
+      }
+    },
+    "query": "\n            UPDATE bet SET\n                team_one_score = ?, \n                team_two_score = ?\n            WHERE\n                user_id = ?\n                AND match_id = (SELECT id FROM match WHERE start_date < DATE() AND id = ?);\n\n            SELECT\n                match_id,\n                user_id,\n                team_one_score,\n                team_two_score\n            FROM\n                bet\n            WHERE\n                user_id = ?\n                AND match_id = ?;\n            "
   },
   "c68e715db9535edc195f7309737b238f7c7e3d013f6b8b05316913ba3057cfdb": {
     "describe": {
